@@ -70,6 +70,7 @@ models/*
 
 # build, distribute, and bins (+ python proto bindings)
 build
+build-xcode/
 .build_debug/*
 .build_release/*
 distribute/*
