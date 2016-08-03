@@ -572,7 +572,8 @@ namespace caffe {
         
         int rand_num = param_.corner_perturb_ratio()*200;
         int rand_num_half = rand_num/2;
-        for (auto& points : label_data.boxes) {
+        for (int i = 0; i < label_data.boxes.size(); i++) {
+            std::pair<cv::Vec4f,cv::Vec4f>& points = label_data.boxes[i];
             float dim_x = std::abs(points.second[0] - points.second[2]);
             float dim_y = std::abs(points.second[1] - points.second[3]);
             points.second[0] += (Rand(rand_num)-rand_num_half)*0.01f*dim_x;

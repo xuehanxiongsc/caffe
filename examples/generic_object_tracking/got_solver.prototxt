@@ -1,11 +1,11 @@
-# training batch size: 64
-# testing batch size: 32
+# training batch size: 128
+# testing batch size: 64
 # total training images: 20254 
-# total testing images: 2590
-# one epoch: 316 iterations
-net: "/Users/xuehan.xiong/framework/caffe/examples/generic_object_tracking/got_train_test.prototxt"
-#test_iter: 170
-#test_interval: 200
+# total testing images: 3351
+# one epoch: 158 iterations
+net: "got_train_test.prototxt"
+test_iter: 53
+test_interval: 200
 base_lr: 1e-5
 momentum: 0.9
 gamma: 0.1
@@ -21,4 +21,5 @@ snapshot: 2000
 snapshot_prefix: "got"
 # solver mode: CPU or GPU
 # debug_info: true
-solver_mode: CPU
+solver_mode: GPU
+device_id: 2
