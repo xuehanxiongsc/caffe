@@ -1,5 +1,7 @@
 #ifdef USE_OPENCV
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #endif  // USE_OPENCV
 
 #include <string>
@@ -7,6 +9,7 @@
 
 #include "caffe/data_transformer.hpp"
 #include "caffe/util/io.hpp"
+#include "caffe/util/opencv_util.hpp"
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/rng.hpp"
 
@@ -507,8 +510,7 @@ namespace caffe {
     }
     
     template<typename Dtype>
-    vector<int> DataTransformer<Dtype>::InferBlobShape(
-                                                       const vector<cv::Mat> & mat_vector) {
+    vector<int> DataTransformer<Dtype>::InferBlobShape(const vector<cv::Mat> & mat_vector) {
         const int num = mat_vector.size();
         CHECK_GT(num, 0) << "There is no cv_img to in the vector";
         // Use first cv_img in the vector to InferBlobShape.
@@ -541,54 +543,154 @@ namespace caffe {
     }
     
 // GOT stuff
-    template<typename Dtype>
-    void DataTransformer<Dtype>::imcrop(const cv::Mat& inputIm, cv::Mat& outputIm,
-                                        const cv::Rect& inputROI, cv::Point& offset, bool fill, uchar fillValue)
-    {
-        if (inputROI.x >= inputIm.cols || inputROI.y >= inputIm.rows) return;
-        int dstx = inputROI.x + inputROI.width - 1;
-        int dsty = inputROI.y + inputROI.height - 1;
-        if (dstx < 0 || dsty < 0) return;
-        int minx = std::max<int>(0, inputROI.x);
-        int miny = std::max<int>(0, inputROI.y);
-        int maxx = std::min<int>(inputIm.cols - 1, dstx);
-        int maxy = std::min<int>(inputIm.rows - 1, dsty);
-        
-        if (fill) {
-            cv::Scalar toAdd;
-            if (inputIm.channels() == 1) {
-                toAdd = cv::Scalar(fillValue);
-            } else if (inputIm.channels() == 3) {
-                toAdd = cv::Scalar(fillValue,fillValue,fillValue);
-            }
-            outputIm = cv::Mat::zeros(inputROI.height, inputROI.width, inputIm.type());
-            cv::add(outputIm, toAdd, outputIm);
-            inputIm(cv::Range(miny, maxy + 1), cv::Range(minx, maxx + 1)).copyTo(outputIm(cv::Range(std::max(0,-inputROI.y), std::min(inputROI.height, inputIm.rows-inputROI.y)), cv::Range(std::max(0,-inputROI.x), std::min(inputROI.width, inputIm.cols-inputROI.x))));
-            
-            offset.x = inputROI.x;
-            offset.y = inputROI.y;
-            return;
-        }
-        offset.x = minx;
-        offset.y = miny;
-        outputIm = inputIm(cv::Range(miny, maxy + 1), cv::Range(minx, maxx + 1));
-    }
-    
     
     template<typename Dtype>
-    void DataTransformer<Dtype>::ReadGOTLabelData(GOTLabelData& label_data, const string& data) {
+    void DataTransformer<Dtype>::ReadGOTLabelData(GOTLabelData& label_data, const string& data, int offset, int image_width) {
         int height, width;
-        DecodeFloats(data, 0, &height, 1);
-        DecodeFloats(data, 4, &width, 1);
+        DecodeFloats(data, offset,   &height, 1);
+        DecodeFloats(data, offset+4, &width,  1);
         label_data.img_size = cv::Size(width, height);
-        DecodeFloats(data, 8, &label_data.num_objects, 1);
+        DecodeFloats(data, offset+image_width, &label_data.num_objects, 1);
         label_data.boxes.resize(label_data.num_objects);
         
         for(int i=0; i<label_data.num_objects; i++){
-            DecodeFloats(data, 12+4*i, &label_data.boxes[i].first.x, 1);
-            DecodeFloats(data, 16+4*i, &label_data.boxes[i].first.y, 1);
-            DecodeFloats(data, 20+4*i, &label_data.boxes[i].second.x, 1);
-            DecodeFloats(data, 24+4*i, &label_data.boxes[i].second.y, 1);
+            int offset2 = offset+image_width*(i+2);
+            DecodeFloats(data, offset2,    &label_data.boxes[i].first[0], 1);
+            DecodeFloats(data, offset2+4,  &label_data.boxes[i].first[1], 1);
+            DecodeFloats(data, offset2+8,  &label_data.boxes[i].first[2], 1);
+            DecodeFloats(data, offset2+12, &label_data.boxes[i].first[3], 1);
+            
+            DecodeFloats(data, offset2+16, &label_data.boxes[i].second[0], 1);
+            DecodeFloats(data, offset2+20, &label_data.boxes[i].second[1], 1);
+            DecodeFloats(data, offset2+24, &label_data.boxes[i].second[2], 1);
+            DecodeFloats(data, offset2+28, &label_data.boxes[i].second[3], 1);
+        }
+    }
+    
+    template<typename Dtype>
+    void DataTransformer<Dtype>::GOTAugment(GOTLabelData& label_data) {
+        
+        int rand_num = param_.corner_perturb_ratio()*200;
+        int rand_num_half = rand_num/2;
+        for (auto& points : label_data.boxes) {
+            float dim_x = std::abs(points.second[0] - points.second[2]);
+            float dim_y = std::abs(points.second[1] - points.second[3]);
+            points.second[0] += (Rand(rand_num)-rand_num_half)*0.01f*dim_x;
+            points.second[1] += (Rand(rand_num)-rand_num_half)*0.01f*dim_y;
+            points.second[2] += (Rand(rand_num)-rand_num_half)*0.01f*dim_x;
+            points.second[3] += (Rand(rand_num)-rand_num_half)*0.01f*dim_y;
+        }
+    }
+    
+    template<typename Dtype>
+    cv::Mat DataTransformer<Dtype>::grayImageFromDatum(const Datum& datum, int offset) {
+        const string& data = datum.data();
+        const int datum_height = datum.height();
+        const int datum_width = datum.width();
+        
+        cv::Mat img = cv::Mat::zeros(datum_height, datum_width, CV_8UC1);
+        int count = offset;
+        for (int i = 0; i < img.rows; ++i) {
+            uchar* row_ptr = img.ptr<uchar>(i);
+            for (int j = 0; j < img.cols; ++j) {
+                row_ptr[j] = static_cast<uint8_t>(data[count++]);
+            }
+        }
+        return img;
+    }
+    template<typename Dtype>
+    void DataTransformer<Dtype>::GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label) {
+        
+        const int datum_channels = datum.channels();
+        const int im_channels = transformed_data->channels();
+        const int im_num = transformed_data->num();
+        const int lb_num = transformed_label->num();
+        CHECK_EQ(datum_channels, 3);
+        CHECK_EQ(im_channels, 3); // 3-channel. current image, previous image, labels
+        CHECK_EQ(im_num, lb_num);
+        CHECK_GE(im_num, 1);
+        
+        Dtype* transformed_data_pointer = transformed_data->mutable_cpu_data();
+        Dtype* transformed_label_pointer = transformed_label->mutable_cpu_data();
+        
+        GOTTransform(datum, transformed_data_pointer, transformed_label_pointer);
+    }
+    
+    template<typename Dtype>
+    void DataTransformer<Dtype>::GOTTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label) {
+        GOTLabelData label_data;
+        
+        const string& data = datum.data();
+        const int datum_channels = datum.channels();
+        const int datum_height = datum.height();
+        const int datum_width = datum.width();
+        CHECK_GT(datum_channels, 0);
+        // read current image
+        int offset = datum_width * datum_height;
+        cv::Mat cur_img = grayImageFromDatum(datum, 0);
+        cv::Mat prev_img = grayImageFromDatum(datum, offset);
+        //cv::imwrite("cur.jpg", cur_img);
+        //cv::imwrite("prev.jpg", prev_img);
+        ReadGOTLabelData(label_data, data, 2*offset, datum_width);
+        // which objec to track
+        int obj_index = Rand(label_data.num_objects);
+        // augment bounding boxes by perturbing it
+        GOTAugment(label_data);
+        cv::Vec4f minmax_prev = label_data.boxes[obj_index].second;
+        cv::Vec4f minmax_cur = label_data.boxes[obj_index].first;
+        cv::Rect box = vec2rect(minmax_prev);
+        cv::Rect square_box = make_square(box, param_.crop_margin());
+        // crop images according to bounding boxes
+        cv::Mat cropped_cur_img, cropped_prev_img;
+        cv::Point ul_point;
+        imcrop(cur_img,  cropped_cur_img,  square_box, ul_point, true, 127);
+        imcrop(prev_img, cropped_prev_img, square_box, ul_point, true, 127);
+        unsigned int crop_size = param_.crop_size();
+        float scale = static_cast<float>(crop_size)/cropped_cur_img.rows;
+        minmax_prev[0] -= ul_point.x;
+        minmax_prev[1] -= ul_point.y;
+        minmax_prev[2] -= ul_point.x;
+        minmax_prev[3] -= ul_point.y;
+        minmax_prev *= scale;
+        
+        minmax_cur[0] -= ul_point.x;
+        minmax_cur[1] -= ul_point.y;
+        minmax_cur[2] -= ul_point.x;
+        minmax_cur[3] -= ul_point.y;
+        minmax_cur *= scale;
+        // resize image
+        cv::Mat resized_cur_image, resized_prev_image;
+        cv::resize(cropped_cur_img,  resized_cur_image,  cv::Size(crop_size,crop_size));
+        cv::resize(cropped_prev_img, resized_prev_image, cv::Size(crop_size,crop_size));
+        // create binary mask
+        cv::Mat binary_mask = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
+        box = vec2rect(minmax_prev);
+        const std::vector<cv::Point>& corners = corners_from_rect(box);
+        cv::fillConvexPoly(binary_mask, &corners[0], 4, cv::Scalar(1));
+        // copy back to datum
+        offset = crop_size*crop_size;
+        // current frame in grayscale
+        CopyToDatum(transformed_data, resized_cur_image, 127.0f, 1.0f/255.0f);
+        // previous frame in grayscale
+        CopyToDatum(transformed_data + offset, resized_prev_image, 127.0f, 1.0f/255.0f);
+        // binary mask
+        CopyToDatum(transformed_data + offset + offset, binary_mask);
+        // label: displacement of bounding boxes
+        const float inv_crop_size = 1.0f/crop_size;
+        transformed_label[0] = (minmax_cur[0]-minmax_prev[0])*inv_crop_size;
+        transformed_label[1] = (minmax_cur[1]-minmax_prev[1])*inv_crop_size;
+        transformed_label[2] = (minmax_cur[2]-minmax_prev[2])*inv_crop_size;
+        transformed_label[3] = (minmax_cur[3]-minmax_prev[3])*inv_crop_size;
+    }
+    
+    template<typename Dtype>
+    void DataTransformer<Dtype>::CopyToDatum(Dtype* data, const cv::Mat& mat, Dtype mean, Dtype div) {
+        int count = 0;
+        for (int i = 0; i < mat.rows; ++i) {
+            const uchar* row_ptr = mat.ptr<uchar>(i);
+            for (int j = 0; j < mat.cols; ++j) {
+                data[count++] = (row_ptr[j] - mean)*div;
+            }
         }
     }
     

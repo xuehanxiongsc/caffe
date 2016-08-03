@@ -2,7 +2,8 @@
 #define CAFFE_DATA_TRANSFORMER_HPP
 
 #include <vector>
-
+#include <math.h>
+#include <opencv2/core/core.hpp>
 #include "caffe/blob.hpp"
 #include "caffe/common.hpp"
 #include "caffe/proto/caffe.pb.h"
@@ -75,6 +76,20 @@ namespace caffe {
          *    set_cpu_data() is used. See image_data_layer.cpp for an example.
          */
         void Transform(const cv::Mat& cv_img, Blob<Dtype>* transformed_blob);
+        /**
+         *  @brief only applicable for GOT data
+         *
+         *  @param datum             
+         *     A Blob containing the data to be transformed. It applies the same
+         *     transformation to all the num images in the blob.
+         *  @param transformed_data
+         *     This is destination blob, it will contain as many images as the
+         *     input blob. It can be part of top blob's data.
+         *  @param transformed_label
+         *     This is destination blob, it will contain as many labels as the
+         *     input blob. It can be part of top blob's data.
+         */
+        void GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label);
 #endif  // USE_OPENCV
         
         /**
@@ -156,11 +171,14 @@ namespace caffe {
         struct GOTLabelData {
             cv::Size img_size;
             int num_objects;
-            std::vector<std::pair<cv::Point2f,cv::Point2f> > boxes; // bounding boxes, upper left and bottom right points
+            std::vector<std::pair<cv::Vec4f,cv::Vec4f> > boxes; // bounding boxes, upper left and bottom right points
         };
-        void ReadGOTLabelData(GOTLabelData& label_data, const std::string& data);
-        void imcrop(const cv::Mat& inputIm, cv::Mat& outputIm,
-                    const cv::Rect& inputROI, cv::Point& offset, bool fill, uchar fillValue=0);
+        void ReadGOTLabelData(GOTLabelData& label_data, const std::string& data, int offset, int width);
+        void GOTAugment(GOTLabelData& label_data);
+        cv::Mat grayImageFromDatum(const Datum& datum, int offset);
+        void CopyToDatum(Dtype* data, const cv::Mat& mat, Dtype mean=0.0, Dtype div=1.0);
+        void GOTTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
+        
 #endif
         
     };
