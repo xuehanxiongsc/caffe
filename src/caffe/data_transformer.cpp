@@ -569,17 +569,18 @@ namespace caffe {
     
     template<typename Dtype>
     void DataTransformer<Dtype>::GOTAugment(GOTLabelData& label_data) {
-        
-        int rand_num = param_.corner_perturb_ratio()*200;
-        int rand_num_half = rand_num/2;
-        for (int i = 0; i < label_data.boxes.size(); i++) {
-            std::pair<cv::Vec4f,cv::Vec4f>& points = label_data.boxes[i];
-            float dim_x = std::abs(points.second[0] - points.second[2]);
-            float dim_y = std::abs(points.second[1] - points.second[3]);
-            points.second[0] += (Rand(rand_num)-rand_num_half)*0.01f*dim_x;
-            points.second[1] += (Rand(rand_num)-rand_num_half)*0.01f*dim_y;
-            points.second[2] += (Rand(rand_num)-rand_num_half)*0.01f*dim_x;
-            points.second[3] += (Rand(rand_num)-rand_num_half)*0.01f*dim_y;
+        if (phase_ == TRAIN) {
+            int rand_num = param_.corner_perturb_ratio()*200;
+            int rand_num_half = rand_num/2;
+            for (int i = 0; i < label_data.boxes.size(); i++) {
+                std::pair<cv::Vec4f,cv::Vec4f>& points = label_data.boxes[i];
+                float dim_x = std::abs(points.second[0] - points.second[2]);
+                float dim_y = std::abs(points.second[1] - points.second[3]);
+                points.second[0] += (Rand(rand_num)-rand_num_half)*0.01f*dim_x;
+                points.second[1] += (Rand(rand_num)-rand_num_half)*0.01f*dim_y;
+                points.second[2] += (Rand(rand_num)-rand_num_half)*0.01f*dim_x;
+                points.second[3] += (Rand(rand_num)-rand_num_half)*0.01f*dim_y;
+            }
         }
     }
     
@@ -634,7 +635,10 @@ namespace caffe {
         //cv::imwrite("prev.jpg", prev_img);
         ReadGOTLabelData(label_data, data, 2*offset, datum_width);
         // which objec to track
-        int obj_index = Rand(label_data.num_objects);
+        int obj_index = 0;;
+        if (phase_ == TRAIN)
+            obj_index = Rand(label_data.num_objects);
+            
         // augment bounding boxes by perturbing it
         GOTAugment(label_data);
         cv::Vec4f minmax_prev = label_data.boxes[obj_index].second;
