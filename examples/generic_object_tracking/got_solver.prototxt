@@ -3,7 +3,7 @@
 # total training images: 20254 
 # total testing images: 3351
 # one epoch: 158 iterations
-net: "got_train_test.prototxt"
+net: "got_train_test.prototxt1"
 test_iter: 53
 test_interval: 200
 base_lr: 1e-5
@@ -12,14 +12,14 @@ gamma: 0.1
 weight_decay: 0.0
 # The learning rate policy
 lr_policy: "step"
-stepsize: 2000
-display: 10
+stepsize: 3000
+display: 100
 # The maximum number of iterations
-max_iter: 8000
+max_iter: 10000
 # snapshot intermediate results
 snapshot: 2000
 snapshot_prefix: "got"
 # solver mode: CPU or GPU
 # debug_info: true
 solver_mode: GPU
-device_id: 2
+device_id: 0
