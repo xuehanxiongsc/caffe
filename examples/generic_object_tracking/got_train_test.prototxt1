@@ -15,7 +15,7 @@ layer {
     blur_sigma: 20
   }
   data_param {
-    source: "/Users/xuehan.xiong/ILSVRC2015/ILSVRC2015_tracking_train_split"
+    source: "/raid/xuehan/ILSVRC2015_tracking_train_split"
     batch_size: 128
     backend: LMDB
   }
@@ -38,7 +38,7 @@ layer {
     blur_sigma: 20
   }
   data_param {
-    source: "/Users/xuehan.xiong/ILSVRC2015/ILSVRC2015_tracking_val_split"
+    source: "/raid/xuehan/ILSVRC2015_tracking_val_split"
     batch_size: 64
     backend: LMDB
   }
