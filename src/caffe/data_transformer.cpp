@@ -570,6 +570,7 @@ namespace caffe {
     template<typename Dtype>
     void DataTransformer<Dtype>::GOTAugment(GOTLabelData& label_data) {
         if (phase_ == TRAIN) {
+            if (10*(1.0f-param_.perturb_frequency()) > Rand(10)) return;
             int rand_num = param_.corner_perturb_ratio()*200;
             int rand_num_half = rand_num/2;
             for (int i = 0; i < label_data.boxes.size(); i++) {
@@ -600,8 +601,9 @@ namespace caffe {
         }
         return img;
     }
+    
     template<typename Dtype>
-    void DataTransformer<Dtype>::GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label) {
+    float DataTransformer<Dtype>::GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label) {
         
         const int datum_channels = datum.channels();
         const int im_channels = transformed_data->channels();
@@ -615,11 +617,11 @@ namespace caffe {
         Dtype* transformed_data_pointer = transformed_data->mutable_cpu_data();
         Dtype* transformed_label_pointer = transformed_label->mutable_cpu_data();
         
-        GOTTransform(datum, transformed_data_pointer, transformed_label_pointer);
+        return GOTTransform(datum, transformed_data_pointer, transformed_label_pointer);
     }
     
     template<typename Dtype>
-    void DataTransformer<Dtype>::GOTTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label) {
+    float DataTransformer<Dtype>::GOTTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label) {
         GOTLabelData label_data;
         
         const string& data = datum.data();
@@ -704,6 +706,8 @@ namespace caffe {
         transformed_label[1] = (minmax_cur[1]-minmax_prev[1])*inv_crop_size;
         transformed_label[2] = sign*(minmax_cur[2]-minmax_prev[2])*inv_crop_size;
         transformed_label[3] = (minmax_cur[3]-minmax_prev[3])*inv_crop_size;
+        return transformed_label[0]*transformed_label[0] + transformed_label[1]*transformed_label[1] +
+            transformed_label[2]*transformed_label[2] +transformed_label[3]*transformed_label[3];
     }
     
     template<typename Dtype>
