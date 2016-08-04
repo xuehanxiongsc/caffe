@@ -3,7 +3,7 @@
 # total training images: 20254 
 # total testing images: 3351
 # one epoch: 158 iterations
-net: "/Users/xuehan.xiong/framework/caffe/examples/generic_object_tracking/got_train_test.prototxt1"
+net: "/Users/xuehan.xiong/framework/caffe/examples/generic_object_tracking/got_train_test.prototxt2"
 test_iter: 53
 test_interval: 200
 base_lr: 1e-5
@@ -18,7 +18,7 @@ display: 100
 max_iter: 10000
 # snapshot intermediate results
 snapshot: 2000
-snapshot_prefix: "got"
+snapshot_prefix: "got2"
 # solver mode: CPU or GPU
 # debug_info: true
 solver_mode: GPU
