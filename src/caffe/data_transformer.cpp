@@ -671,7 +671,25 @@ namespace caffe {
         cv::Mat binary_mask = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
         box = vec2rect(minmax_prev);
         const std::vector<cv::Point>& corners = corners_from_rect(box);
-        cv::fillConvexPoly(binary_mask, &corners[0], 4, cv::Scalar(1));
+        cv::fillConvexPoly(binary_mask, &corners[0], 4, cv::Scalar(255));
+        if (param_.blur_mask()) {
+            cv::Mat blurred_mask;
+            cv::GaussianBlur(binary_mask, blurred_mask, cv::Size(param_.blur_winsize(),param_.blur_winsize()), param_.blur_sigma());
+            binary_mask = blurred_mask;
+        }
+        // add mirroring
+        const bool do_mirror = param_.mirror() && Rand(2) && (phase_ == TRAIN);
+        float sign = 1.0f;
+        if (do_mirror) {
+            cv::Mat flipped_cur_image, flipped_prev_image, flipped_binary_mask;
+            cv::flip(resized_cur_image, flipped_cur_image, 1);
+            cv::flip(resized_prev_image, flipped_prev_image, 1);
+            cv::flip(binary_mask, flipped_binary_mask, 1);
+            resized_cur_image = flipped_cur_image;
+            resized_prev_image = flipped_prev_image;
+            binary_mask = flipped_binary_mask;
+            sign = -1.0f;
+        }
         // copy back to datum
         offset = crop_size*crop_size;
         // current frame in grayscale
@@ -679,12 +697,12 @@ namespace caffe {
         // previous frame in grayscale
         CopyToDatum(transformed_data + offset, resized_prev_image, 127.0f, 1.0f/255.0f);
         // binary mask
-        CopyToDatum(transformed_data + offset + offset, binary_mask);
+        CopyToDatum(transformed_data + offset + offset, binary_mask, 0.f, 1.0/255.f);
         // label: displacement of bounding boxes
         const float inv_crop_size = 1.0f/crop_size;
-        transformed_label[0] = (minmax_cur[0]-minmax_prev[0])*inv_crop_size;
+        transformed_label[0] = sign*(minmax_cur[0]-minmax_prev[0])*inv_crop_size;
         transformed_label[1] = (minmax_cur[1]-minmax_prev[1])*inv_crop_size;
-        transformed_label[2] = (minmax_cur[2]-minmax_prev[2])*inv_crop_size;
+        transformed_label[2] = sign*(minmax_cur[2]-minmax_prev[2])*inv_crop_size;
         transformed_label[3] = (minmax_cur[3]-minmax_prev[3])*inv_crop_size;
     }
     
