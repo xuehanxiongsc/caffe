@@ -82,6 +82,7 @@ namespace caffe {
         if (this->output_labels_) {
             top_label = batch->label_.mutable_cpu_data();
         }
+        float error0 = 0.0f;
         for (int item_id = 0; item_id < batch_size; ++item_id) {
             // get a blob
             timer.Start();
@@ -94,12 +95,13 @@ namespace caffe {
             const int offset_label = batch->label_.offset(item_id);
             this->transformed_data_.set_cpu_data(top_data + offset_data);
             this->transformed_label_.set_cpu_data(top_label + offset_label);
-            this->data_transformer_->GOTTransform(datum,
-                                                  &(this->transformed_data_),
-                                                  &(this->transformed_label_));
+            error0 += this->data_transformer_->GOTTransform(datum,
+                                                            &(this->transformed_data_),
+                                                            &(this->transformed_label_));
             trans_time += timer.MicroSeconds();
             reader_.free().push(const_cast<Datum*>(&datum));
         }
+        LOG(INFO) << "Error0: " << error0/batch_size;
         timer.Stop();
         batch_timer.Stop();
         

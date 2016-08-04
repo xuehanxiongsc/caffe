@@ -89,7 +89,7 @@ namespace caffe {
          *     This is destination blob, it will contain as many labels as the
          *     input blob. It can be part of top blob's data.
          */
-        void GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label);
+        float GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label);
 #endif  // USE_OPENCV
         
         /**
@@ -177,7 +177,7 @@ namespace caffe {
         void GOTAugment(GOTLabelData& label_data);
         cv::Mat grayImageFromDatum(const Datum& datum, int offset);
         void CopyToDatum(Dtype* data, const cv::Mat& mat, Dtype mean=0.0, Dtype div=1.0);
-        void GOTTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
+        float GOTTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
         
 #endif
         
