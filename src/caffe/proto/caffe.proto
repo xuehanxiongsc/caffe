@@ -439,6 +439,8 @@ message TransformationParameter {
   optional float blur_winsize = 12;
   // sigma of Gaussian
   optional float blur_sigma = 13;
+  // use gradient image for training
+  optional bool use_gradient = 14 [default = false];
 }
 
 // Message that stores parameters shared by loss layers

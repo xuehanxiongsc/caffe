@@ -610,7 +610,10 @@ namespace caffe {
         const int im_num = transformed_data->num();
         const int lb_num = transformed_label->num();
         CHECK_EQ(datum_channels, 3);
-        CHECK_EQ(im_channels, 3); // 3-channel. current image, previous image, labels
+        if (param_.use_gradient())
+            CHECK_EQ(im_channels, 4);
+        else
+            CHECK_EQ(im_channels, 3);
         CHECK_EQ(im_num, lb_num);
         CHECK_GE(im_num, 1);
         
@@ -694,12 +697,24 @@ namespace caffe {
         }
         // copy back to datum
         offset = crop_size*crop_size;
-        // current frame in grayscale
-        CopyToDatum(transformed_data, resized_cur_image, 127.0f, 1.0f/255.0f);
-        // previous frame in grayscale
-        CopyToDatum(transformed_data + offset, resized_prev_image, 127.0f, 1.0f/255.0f);
-        // binary mask
-        CopyToDatum(transformed_data + offset + offset, binary_mask, 0.f, 1.0/255.f);
+        if (param_.use_gradient()) {
+            cv::Mat It = resized_cur_image - resized_prev_image;
+            cv::Mat Ix, Iy;
+            cv::Sobel(resized_cur_image, Ix, resized_cur_image.depth(), 1, 0);
+            cv::Sobel(resized_cur_image, Iy, resized_cur_image.depth(), 0, 1);
+            
+            CopyToDatum(transformed_data, It, 0.0f, 1.0f/255.0f);
+            CopyToDatum(transformed_data + offset, Ix, 0.0f, 1.0f/255.0f);
+            CopyToDatum(transformed_data + 2*offset, Iy, 0.f, 1.0/255.f);
+            CopyToDatum(transformed_data + 3*offset, binary_mask, 0.f, 1.0/255.f);
+        } else {
+            // current frame in grayscale
+            CopyToDatum(transformed_data, resized_cur_image, 127.0f, 1.0f/255.0f);
+            // previous frame in grayscale
+            CopyToDatum(transformed_data + offset, resized_prev_image, 127.0f, 1.0f/255.0f);
+            // binary mask
+            CopyToDatum(transformed_data + offset + offset, binary_mask, 0.f, 1.0/255.f);
+        }
         // label: displacement of bounding boxes
         //const float inv_crop_size = 1.0f/crop_size;
         const float inv_crop_size = 1.0f;
