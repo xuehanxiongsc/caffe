@@ -46,7 +46,10 @@ namespace caffe {
             for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
                 this->prefetch_[i].data_.Reshape(batch_size, datum.channels(), crop_size, crop_size);
             }
-            this->transformed_data_.Reshape(1, datum.channels(), crop_size, crop_size);
+            if (this->layer_param_.transform_param().use_gradient())
+                this->transformed_data_.Reshape(1, datum.channels()+1, crop_size, crop_size);
+            else
+                this->transformed_data_.Reshape(1, datum.channels(), crop_size, crop_size);
         }
         LOG(INFO) << "output data size: " << top[0]->num() << ","
         << top[0]->channels() << "," << top[0]->height() << ","
