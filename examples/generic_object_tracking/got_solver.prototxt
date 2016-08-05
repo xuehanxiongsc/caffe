@@ -1,10 +1,10 @@
 # training batch size: 64
-# testing batch size: 64
+# testing batch size: 32
 # total training images: 20254 
 # total testing images: 3351
 # one epoch: 316 iterations
 net: "got_train_test.prototxt4"
-test_iter: 53
+test_iter: 106
 test_interval: 200
 base_lr: 1e-5
 momentum: 0.9
@@ -23,4 +23,4 @@ snapshot_prefix: "got4"
 # debug_info: true
 solver_mode: GPU
 device_id: 3
-clip_gradients: 100
+#clip_gradients: 100
