@@ -101,7 +101,7 @@ namespace caffe {
             trans_time += timer.MicroSeconds();
             reader_.free().push(const_cast<Datum*>(&datum));
         }
-        LOG(INFO) << "Error0: " << error0/batch_size;
+        //LOG(INFO) << "Error0: " << error0/batch_size;
         timer.Stop();
         batch_timer.Stop();
         

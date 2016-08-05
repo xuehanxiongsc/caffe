@@ -701,7 +701,8 @@ namespace caffe {
         // binary mask
         CopyToDatum(transformed_data + offset + offset, binary_mask, 0.f, 1.0/255.f);
         // label: displacement of bounding boxes
-        const float inv_crop_size = 1.0f/crop_size;
+        //const float inv_crop_size = 1.0f/crop_size;
+        const float inv_crop_size = 1.0f;
         transformed_label[0] = sign*(minmax_cur[0]-minmax_prev[0])*inv_crop_size;
         transformed_label[1] = (minmax_cur[1]-minmax_prev[1])*inv_crop_size;
         transformed_label[2] = sign*(minmax_cur[2]-minmax_prev[2])*inv_crop_size;
