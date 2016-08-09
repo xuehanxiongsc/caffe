@@ -6,7 +6,7 @@ layer {
   top: "label"
   transform_param {
     crop_size: 256
-    corner_perturb_ratio: 0.5
+    corner_perturb_ratio: 0.3
     perturb_frequency: 1.0
     crop_margin: 0.25
     mirror: false
@@ -27,6 +27,11 @@ layer {
     axis: 1
     slice_point: 1
   }
+}
+layer {
+  name: "silence_box"
+  type: "Silence"
+  bottom: "box"
 }
 layer {
   name: "conv1_1" 
@@ -327,68 +332,10 @@ layer {
     stride: 2
   }
 }
-
-layer {
-  name: "conv4_1" 
-  type: "Convolution"
-  bottom: "pool3"
-  top: "conv4_1"
-  param {
-    lr_mult: 1
-    decay_mult: 1
-  }
-  convolution_param {
-    num_output: 32
-    pad: 1
-    kernel_size: 3
-    bias_term: false
-    stride: 1
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-  }
-}
-layer {
-  name: "conv4_1_bn"
-  type: "BatchNorm"
-  bottom: "conv4_1"
-  top: "conv4_1_bn"
-  param {lr_mult: 0}
-  param {lr_mult: 0}
-  param {lr_mult: 0}
-}
-layer {
-  name: "conv4_1_bn_scale"
-  type: "Scale"
-  bottom: "conv4_1_bn"
-  top: "conv4_1_bn"
-  scale_param {bias_term: true}
-}
-layer {
-  name: "conv4_1_relu"
-  type: "ReLU"
-  bottom: "conv4_1_bn"
-  top: "conv4_1_bn"
-}
-
-layer {
-  name: "roi_pool"
-  type: "ROIPooling"
-  bottom: "conv4_1_bn"
-  bottom: "box"
-  top: "roi_pool"
-  roi_pooling_param {
-    pooled_w: 16
-    pooled_h: 16
-    spatial_scale: 0.125
-  }
-}
-
 layer {
   name: "conv5_1" 
   type: "Convolution"
-  bottom: "roi_pool"
+  bottom: "pool3"
   top: "conv5_1"
   param {
     lr_mult: 1
