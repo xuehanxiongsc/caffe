@@ -6,31 +6,8 @@ layer {
   top: "label"
   transform_param {
     crop_size: 256
-    corner_perturb_ratio: 0.2
-    perturb_frequency: 0.5
-    crop_margin: 0.25
-    blur_mask: true
-    mirror: true
-    blur_winsize: 41
-    blur_sigma: 20
-  }
-  data_param {
-    source: "/raid/xuehan/ILSVRC2015_tracking_train_split"
-    batch_size: 128
-    backend: LMDB
-  }
-  include {
-    phase: TRAIN
-  }
-}
-layer {
-  name: "got_data"
-  type: "GOTData"
-  top: "data"
-  top: "label"
-  transform_param {
-    crop_size: 256
-    corner_perturb_ratio: 0.2
+    corner_perturb_ratio: 0.0
+    perturb_frequency: 0.0
     crop_margin: 0.25
     blur_mask: true
     mirror: true
@@ -39,11 +16,8 @@ layer {
   }
   data_param {
     source: "/raid/xuehan/ILSVRC2015_tracking_val_split"
-    batch_size: 64
+    batch_size: 128
     backend: LMDB
-  }
-  include {
-    phase: TEST
   }
 }
 layer {

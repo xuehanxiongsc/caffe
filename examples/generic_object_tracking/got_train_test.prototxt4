@@ -13,37 +13,12 @@ layer {
     mirror: true
     blur_winsize: 41
     blur_sigma: 20
+    use_gradient: false
   }
   data_param {
     source: "/raid/xuehan/ILSVRC2015_tracking_train_split"
     batch_size: 64
     backend: LMDB
-  }
-  include {
-    phase: TRAIN
-  }
-}
-layer {
-  name: "got_data"
-  type: "GOTData"
-  top: "data"
-  top: "label"
-  transform_param {
-    crop_size: 256
-    corner_perturb_ratio: 0.0
-    crop_margin: 0.25
-    blur_mask: true
-    mirror: true
-    blur_winsize: 41
-    blur_sigma: 20
-  }
-  data_param {
-    source: "/raid/xuehan/ILSVRC2015_tracking_val_split"
-    batch_size: 32
-    backend: LMDB
-  }
-  include {
-    phase: TEST
   }
 }
 layer {
@@ -54,7 +29,7 @@ layer {
   bottom: "data"
   slice_param {
     axis: 1
-    slice_point: 2
+    slice_point: 3
   }
 }
 layer {
@@ -85,7 +60,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -129,7 +104,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -185,7 +160,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -229,7 +204,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -285,7 +260,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -329,7 +304,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -394,7 +369,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -438,7 +413,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -482,7 +457,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -526,7 +501,7 @@ layer {
     bias_term: false
     stride: 1
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
   }
@@ -570,7 +545,7 @@ layer {
   inner_product_param {
     num_output: 4
     weight_filler {
-      type: "gaussian"
+      type: "xavier"
       std: 0.01
     }
     bias_filler {
