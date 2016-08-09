@@ -12,7 +12,7 @@ gamma: 0.1
 weight_decay: 0.0
 # The learning rate policy
 lr_policy: "step"
-stepsize: 1500
+stepsize: 2000
 display: 50
 # The maximum number of iterations
 max_iter: 8000

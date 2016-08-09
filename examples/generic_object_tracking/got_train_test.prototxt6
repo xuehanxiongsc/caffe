@@ -8,7 +8,7 @@ layer {
     crop_size: 256
     corner_perturb_ratio: 0.3
     perturb_frequency: 1.0
-    crop_margin: 0.25
+    crop_margin: 0.5
     mirror: false
   }
   data_param {
