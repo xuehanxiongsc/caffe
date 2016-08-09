@@ -610,11 +610,7 @@ namespace caffe {
         const int im_num = transformed_data->num();
         const int lb_num = transformed_label->num();
         CHECK_EQ(datum_channels, 3);
-        if (param_.use_gradient())
-            CHECK_EQ(im_channels, 4);
-        else
-            CHECK_EQ(im_channels, 3);
-        CHECK_EQ(im_num, lb_num);
+//        CHECK_EQ(im_num, lb_num);
         CHECK_GE(im_num, 1);
         
         Dtype* transformed_data_pointer = transformed_data->mutable_cpu_data();
@@ -648,7 +644,7 @@ namespace caffe {
         GOTAugment(label_data);
         cv::Vec4f minmax_prev = label_data.boxes[obj_index].second;
         cv::Vec4f minmax_cur = label_data.boxes[obj_index].first;
-        cv::Rect box = vec2rect(minmax_prev);
+        cv::Rect box = vec2rect<int>(minmax_prev);
         cv::Rect square_box = make_square(box, param_.crop_margin());
         // crop images according to bounding boxes
         cv::Mat cropped_cur_img, cropped_prev_img;
@@ -673,27 +669,32 @@ namespace caffe {
         cv::resize(cropped_cur_img,  resized_cur_image,  cv::Size(crop_size,crop_size));
         cv::resize(cropped_prev_img, resized_prev_image, cv::Size(crop_size,crop_size));
         // create binary mask
-        cv::Mat binary_mask = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
-        box = vec2rect(minmax_prev);
-        const std::vector<cv::Point>& corners = corners_from_rect(box);
-        cv::fillConvexPoly(binary_mask, &corners[0], 4, cv::Scalar(255));
-        if (param_.blur_mask()) {
-            cv::Mat blurred_mask;
-            cv::GaussianBlur(binary_mask, blurred_mask, cv::Size(param_.blur_winsize(),param_.blur_winsize()), param_.blur_sigma());
-            binary_mask = blurred_mask;
-        }
+//        cv::Mat binary_mask = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
+//        box = vec2rect(minmax_prev);
+//        const std::vector<cv::Point>& corners = corners_from_rect(box);
+//        cv::fillConvexPoly(binary_mask, &corners[0], 4, cv::Scalar(255));
+//        if (param_.blur_mask()) {
+//            cv::Mat blurred_mask;
+//            cv::GaussianBlur(binary_mask, blurred_mask, cv::Size(param_.blur_winsize(),param_.blur_winsize()), param_.blur_sigma());
+//            binary_mask = blurred_mask;
+//        }
         // add mirroring
         const bool do_mirror = param_.mirror() && Rand(2) && (phase_ == TRAIN);
-        float sign = 1.0f;
         if (do_mirror) {
             cv::Mat flipped_cur_image, flipped_prev_image, flipped_binary_mask;
             cv::flip(resized_cur_image, flipped_cur_image, 1);
             cv::flip(resized_prev_image, flipped_prev_image, 1);
-            cv::flip(binary_mask, flipped_binary_mask, 1);
+//            cv::flip(binary_mask, flipped_binary_mask, 1);
             resized_cur_image = flipped_cur_image;
             resized_prev_image = flipped_prev_image;
-            binary_mask = flipped_binary_mask;
-            sign = -1.0f;
+//            binary_mask = flipped_binary_mask;
+            float orig_ul_x = minmax_prev[0];
+            minmax_prev[0] = crop_size - minmax_prev[2];
+            minmax_prev[2] = crop_size - orig_ul_x;
+            
+            orig_ul_x = minmax_cur[0];
+            minmax_cur[0] = crop_size - minmax_cur[2];
+            minmax_cur[2] = crop_size - orig_ul_x;
         }
         // copy back to datum
         offset = crop_size*crop_size;
@@ -706,21 +707,25 @@ namespace caffe {
             CopyToDatum(transformed_data, It, 0.0f, 1.0f/255.0f);
             CopyToDatum(transformed_data + offset, Ix, 0.0f, 1.0f/255.0f);
             CopyToDatum(transformed_data + 2*offset, Iy, 0.f, 1.0/255.f);
-            CopyToDatum(transformed_data + 3*offset, binary_mask, 0.f, 1.0/255.f);
+//            CopyToDatum(transformed_data + 3*offset, binary_mask, 0.f, 1.0/255.f);
         } else {
             // current frame in grayscale
             CopyToDatum(transformed_data, resized_cur_image, 127.0f, 1.0f/255.0f);
             // previous frame in grayscale
             CopyToDatum(transformed_data + offset, resized_prev_image, 127.0f, 1.0f/255.0f);
             // binary mask
-            CopyToDatum(transformed_data + offset + offset, binary_mask, 0.f, 1.0/255.f);
+//            CopyToDatum(transformed_data + offset + offset, binary_mask, 0.f, 1.0/255.f);
         }
-        // label: displacement of bounding boxes
+        // label: two corners of bounding box  + displacement of bounding boxes
+        transformed_label[4] = minmax_prev[0];
+        transformed_label[5] = minmax_prev[1];
+        transformed_label[6] = minmax_prev[2];
+        transformed_label[7] = minmax_prev[3];
         //const float inv_crop_size = 1.0f/crop_size;
         const float inv_crop_size = 1.0f;
-        transformed_label[0] = sign*(minmax_cur[0]-minmax_prev[0])*inv_crop_size;
+        transformed_label[0] = (minmax_cur[0]-minmax_prev[0])*inv_crop_size;
         transformed_label[1] = (minmax_cur[1]-minmax_prev[1])*inv_crop_size;
-        transformed_label[2] = sign*(minmax_cur[2]-minmax_prev[2])*inv_crop_size;
+        transformed_label[2] = (minmax_cur[2]-minmax_prev[2])*inv_crop_size;
         transformed_label[3] = (minmax_cur[3]-minmax_prev[3])*inv_crop_size;
         return transformed_label[0]*transformed_label[0] + transformed_label[1]*transformed_label[1] +
             transformed_label[2]*transformed_label[2] +transformed_label[3]*transformed_label[3];

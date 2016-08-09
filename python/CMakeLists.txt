@@ -3,6 +3,12 @@ if(NOT HAVE_PYTHON)
   return()
 endif()
 
+#set(PYTHON_INCLUDE_DIRS /usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/include/python2.7/)
+#set(PYTHON_LIBRARIES /usr/local/Cellar/python/2.7.12/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib)
+
+message("python lib: ${PYTHON_LIBRARIES}")
+message("python include: ${PYTHON_INCLUDE_DIRS}")
+
 include_directories(${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 file(GLOB_RECURSE python_srcs ${PROJECT_SOURCE_DIR}/python/*.cpp)
 
