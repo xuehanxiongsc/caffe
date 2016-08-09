@@ -34,7 +34,7 @@ void ReshapeLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   const int input_start_axis = this->layer_param_.reshape_param().axis();
   const int start_axis = (input_start_axis >= 0) ? input_start_axis :
       bottom[0]->num_axes() + input_start_axis + 1;
-  CHECK_GE(start_axis, 0) << "axis " << input_start_axis << " out of range";
+  CHECK_GE(start_axis, 0) << "arrxis " << input_start_axis << " out of range";
   CHECK_LE(start_axis, bottom[0]->num_axes()) << "axis " << input_start_axis
       << " out of range for " << bottom[0]->num_axes() << "-D input blob";
   const int num_axes = this->layer_param_.reshape_param().num_axes();

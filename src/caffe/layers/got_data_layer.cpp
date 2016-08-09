@@ -42,14 +42,11 @@ namespace caffe {
         
         const int batch_size = this->layer_param_.data_param().batch_size();
         if (crop_size > 0) {
-            top[0]->Reshape(batch_size, datum.channels(), crop_size, crop_size);
+            top[0]->Reshape(batch_size, 2, crop_size, crop_size);
             for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-                this->prefetch_[i].data_.Reshape(batch_size, datum.channels(), crop_size, crop_size);
+                this->prefetch_[i].data_.Reshape(batch_size, 2, crop_size, crop_size);
             }
-            if (this->layer_param_.transform_param().use_gradient())
-                this->transformed_data_.Reshape(1, datum.channels()+1, crop_size, crop_size);
-            else
-                this->transformed_data_.Reshape(1, datum.channels(), crop_size, crop_size);
+            this->transformed_data_.Reshape(1, 2, crop_size, crop_size);
         }
         LOG(INFO) << "output data size: " << top[0]->num() << ","
         << top[0]->channels() << "," << top[0]->height() << ","
@@ -57,11 +54,11 @@ namespace caffe {
         
         // label
         if (this->output_labels_) {
-            top[1]->Reshape(batch_size, 1, 1, 4); // 2 two bounding box corners
+            top[1]->Reshape(batch_size, 2, 1, 4); // 2 two bounding box corners
             for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-                this->prefetch_[i].label_.Reshape(batch_size, 1, 1, 4);
+                this->prefetch_[i].label_.Reshape(batch_size, 2, 1, 4);
             }
-            this->transformed_label_.Reshape(1, 1, 1, 4);
+            this->transformed_label_.Reshape(2, 1, 1, 4);
         }
     }
     

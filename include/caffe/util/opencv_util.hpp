@@ -19,8 +19,9 @@ namespace caffe {
         return corners;
     }
     
-    inline cv::Rect vec2rect(const cv::Vec4f& vec) {
-        return cv::Rect(vec[0],vec[1],vec[2]-vec[0]+1,vec[3]-vec[1]+1);
+    template<typename T>
+    cv::Rect_<T> vec2rect(const cv::Vec4f& vec) {
+        return cv::Rect_<T>(vec[0],vec[1],vec[2]-vec[0]+1,vec[3]-vec[1]+1);
     }
     
     inline cv::Rect make_square(const cv::Rect& box, float margin) {

@@ -403,6 +403,7 @@ message LayerParameter {
   optional ThresholdParameter threshold_param = 128;
   optional TileParameter tile_param = 138;
   optional WindowDataParameter window_data_param = 129;
+  optional ROIPoolingParameter roi_pooling_param = 147;
 }
 
 // Message that stores parameters used to apply transformation
@@ -694,6 +695,17 @@ message DummyDataParameter {
   repeated uint32 channels = 3;
   repeated uint32 height = 4;
   repeated uint32 width = 5;
+}
+
+// Message that stores parameters used by ROIPoolingLayer
+message ROIPoolingParameter {
+    // Pad, kernel size, and stride are all given as a single value for equal
+    // dimensions in height and width or as Y, X pairs.
+    optional uint32 pooled_h = 1 [default = 0]; // The pooled output height
+    optional uint32 pooled_w = 2 [default = 0]; // The pooled output width
+    // Multiplicative spatial scale factor to translate ROI coords from their
+    // input scale to the scale used when pooling
+    optional float spatial_scale = 3 [default = 1];
 }
 
 message EltwiseParameter {
