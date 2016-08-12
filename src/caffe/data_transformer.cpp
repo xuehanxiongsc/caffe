@@ -621,9 +621,26 @@ namespace caffe {
     }
     
     template<typename Dtype>
+    void DataTransformer<Dtype>::ReadSegLabelData(SegLabelData& label_data, const string& data, int offset, int image_width) {
+        int height, width;
+        DecodeFloats(data, offset,   &height, 1);
+        DecodeFloats(data, offset+4, &width,  1);
+        label_data.img_size = cv::Size(width, height);
+        DecodeFloats(data, offset+image_width, &label_data.num_objects, 1);
+        label_data.box.resize(label_data.num_objects);
+        
+        for(int i=0; i<label_data.num_objects; i++){
+            int offset2 = offset+image_width*(i+2);
+            DecodeFloats(data, offset2,    &label_data.box[i][0], 1);
+            DecodeFloats(data, offset2+4,  &label_data.box[i][1], 1);
+            DecodeFloats(data, offset2+8,  &label_data.box[i][2], 1);
+            DecodeFloats(data, offset2+12, &label_data.box[i][3], 1);
+        }
+    }
+    
+    template<typename Dtype>
     void DataTransformer<Dtype>::GOTAugment(GOTLabelData& label_data) {
         if (phase_ == TRAIN) {
-            if (10*(1.0f-param_.perturb_frequency()) > Rand(10)) return;
             int rand_num = param_.corner_perturb_ratio()*200;
             int rand_num_half = rand_num/2;
             for (int i = 0; i < label_data.boxes.size(); i++) {
@@ -656,20 +673,80 @@ namespace caffe {
     }
     
     template<typename Dtype>
-    float DataTransformer<Dtype>::GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label) {
+    void DataTransformer<Dtype>::GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label) {
         
         const int datum_channels = datum.channels();
-        const int im_channels = transformed_data->channels();
         const int im_num = transformed_data->num();
         const int lb_num = transformed_label->num();
-        CHECK_EQ(datum_channels, 3);
-//        CHECK_EQ(im_num, lb_num);
+        CHECK_EQ(datum_channels, transformed_data->channels() + transformed_label->channels());
+        CHECK_EQ(im_num, lb_num);
         CHECK_GE(im_num, 1);
         
         Dtype* transformed_data_pointer = transformed_data->mutable_cpu_data();
         Dtype* transformed_label_pointer = transformed_label->mutable_cpu_data();
         
-        return GOTTransform(datum, transformed_data_pointer, transformed_label_pointer);
+        GOTTransform2(datum, transformed_data_pointer, transformed_label_pointer);
+    }
+    
+    template<typename Dtype>
+    void DataTransformer<Dtype>::GOTTransform2(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label) {
+        SegLabelData label_data;
+        
+        const string& data = datum.data();
+        const int datum_channels = datum.channels();
+        const int datum_height = datum.height();
+        const int datum_width = datum.width();
+        const int crop_size = param_.crop_size();
+        CHECK_GT(datum_channels, 0);
+        const bool do_mirror = param_.mirror() && Rand(2) && (phase_ == TRAIN);
+        int src_offset = datum_width * datum_height;
+        int dst_offset = crop_size * crop_size;
+        // read label first
+        ReadSegLabelData(label_data, data, (datum_channels-1)*src_offset, datum_width);
+        
+        // which objec to track
+        int obj_index = 0;;
+        if (phase_ == TRAIN)
+            obj_index = Rand(label_data.num_objects);
+        cv::Vec4f box_vec = label_data.box[obj_index];
+        if (phase_ == TRAIN)
+            perturb_vec(box_vec); // perturb bounding box
+        cv::Rect box = vec2rect<int>(box_vec);
+        cv::Rect square_box = make_square(box, param_.crop_margin());
+        cv::Point ul_point;
+        // process image
+        for (int i = 0; i < datum_channels-1; i++) {
+            cv::Mat image = grayImageFromDatum(datum, src_offset*i);
+            cv::Mat crop_image;
+            imcrop(image,  crop_image,  square_box, ul_point, true, 127);
+            cv::resize(crop_image, image,  cv::Size(crop_size,crop_size));
+            cv::Mat flip_image;
+            if (do_mirror) {
+                cv::flip(image, flip_image, 1);
+            } else {
+                flip_image = image;
+            }
+            CopyToDatum(transformed_data+dst_offset*i, flip_image, 127.0f, 1.0f/255.0f);
+        }
+        // create label
+        box_vec = label_data.box[obj_index]; // ground truth bounding box
+        float scale = static_cast<float>(crop_size)/square_box.width;
+        box_vec[0] -= ul_point.x;
+        box_vec[1] -= ul_point.y;
+        box_vec[2] -= ul_point.x;
+        box_vec[3] -= ul_point.y;
+        box_vec *= scale;
+        
+        cv::Mat label = cv::Mat::zeros(crop_size,crop_size,CV_8UC1); // background class 0
+        box = vec2rect<int>(box_vec);
+        const std::vector<cv::Point>& corners = corners_from_rect(box);
+        cv::fillConvexPoly(label, &corners[0], 4, cv::Scalar(1)); // forground class 1
+        cv::Mat flip_label;
+        if (do_mirror)
+            cv::flip(label, flip_label,1);
+        else
+            flip_label = label;
+        CopyToDatum(transformed_label, flip_label, 0.0f, 1.0f);
     }
     
     template<typename Dtype>
@@ -751,24 +828,12 @@ namespace caffe {
         }
         // copy back to datum
         offset = crop_size*crop_size;
-        if (param_.use_gradient()) {
-            cv::Mat It = resized_cur_image - resized_prev_image;
-            cv::Mat Ix, Iy;
-            cv::Sobel(resized_cur_image, Ix, resized_cur_image.depth(), 1, 0);
-            cv::Sobel(resized_cur_image, Iy, resized_cur_image.depth(), 0, 1);
-            
-            CopyToDatum(transformed_data, It, 0.0f, 1.0f/255.0f);
-            CopyToDatum(transformed_data + offset, Ix, 0.0f, 1.0f/255.0f);
-            CopyToDatum(transformed_data + 2*offset, Iy, 0.f, 1.0/255.f);
-//            CopyToDatum(transformed_data + 3*offset, binary_mask, 0.f, 1.0/255.f);
-        } else {
-            // current frame in grayscale
-            CopyToDatum(transformed_data, resized_cur_image, 127.0f, 1.0f/255.0f);
-            // previous frame in grayscale
-            CopyToDatum(transformed_data + offset, resized_prev_image, 127.0f, 1.0f/255.0f);
-            // binary mask
-//            CopyToDatum(transformed_data + offset + offset, binary_mask, 0.f, 1.0/255.f);
-        }
+        // current frame in grayscale
+        CopyToDatum(transformed_data, resized_cur_image, 127.0f, 1.0f/255.0f);
+        // previous frame in grayscale
+        CopyToDatum(transformed_data + offset, resized_prev_image, 127.0f, 1.0f/255.0f);
+        // binary mask
+        //            CopyToDatum(transformed_data + offset + offset, binary_mask, 0.f, 1.0/255.f);
         // label: two corners of bounding box  + displacement of bounding boxes
         transformed_label[4] = minmax_prev[0];
         transformed_label[5] = minmax_prev[1];
