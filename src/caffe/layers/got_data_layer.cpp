@@ -35,30 +35,39 @@ namespace caffe {
         
         // Read a data point, and use it to initialize the top blob.
         Datum& datum = *(reader_.full().peek());
-        LOG(INFO) << datum.height() << " " << datum.width() << " " << datum.channels();
-        
-        // image
+        // the last channel stores label info
+        const int datum_channel = datum.channels();
         const int crop_size = this->layer_param_.transform_param().crop_size();
-        
         const int batch_size = this->layer_param_.data_param().batch_size();
         if (crop_size > 0) {
-            top[0]->Reshape(batch_size, 2, crop_size, crop_size);
+            // top[0] stores image
+            top[0]->Reshape(batch_size, datum_channel-1, crop_size, crop_size);
             for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-                this->prefetch_[i].data_.Reshape(batch_size, 2, crop_size, crop_size);
+                this->prefetch_[i].data_.Reshape(batch_size, datum_channel-1, crop_size, crop_size);
             }
-            this->transformed_data_.Reshape(1, 2, crop_size, crop_size);
+            this->transformed_data_.Reshape(batch_size, datum_channel-1, crop_size, crop_size);
         }
         LOG(INFO) << "output data size: " << top[0]->num() << ","
         << top[0]->channels() << "," << top[0]->height() << ","
         << top[0]->width();
         
-        // label
+        // top[1] stores label info
         if (this->output_labels_) {
-            top[1]->Reshape(batch_size, 2, 1, 4); // 2 two bounding box corners
-            for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-                this->prefetch_[i].label_.Reshape(batch_size, 2, 1, 4);
+            int label_width = 4;
+            int label_height = 1;
+            int label_channel = 1;
+            if (this->layer_param_.transform_param().output_seg) {
+                label_width = crop_size;
+                label_height = crop_size;
             }
-            this->transformed_label_.Reshape(2, 1, 1, 4);
+            top[1]->Reshape(batch_size, label_channel, label_height, label_width);
+            for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
+                this->prefetch_[i].label_.Reshape(batch_size, label_channel, label_height, label_width);
+            }
+            this->transformed_label_.Reshape(batch_size, label_channel, label_height, label_width);
+            LOG(INFO) << "output label size: " << top[1]->num() << ","
+            << top[1]->channels() << "," << top[1]->height() << ","
+            << top[1]->width();
         }
     }
     
