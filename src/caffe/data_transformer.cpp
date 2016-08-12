@@ -542,6 +542,59 @@ namespace caffe {
         return ((*rng)() % n);
     }
     
+    template<typename Dtype>
+    void DataTransformer<Dtype>::SegTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label) {
+        const int label_channels = transformed_label->channels();
+        const int data_channels = transformed_data->channels();
+        CHECK_EQ(datum.channels(), label_channels + data_channels);
+        CHECK_EQ(transformed_data->width(), transformed_label->width());
+        CHECK_EQ(transformed_data->height(), transformed_label->height());
+        CHECK_LE(transformed_data->height(), datum.height());
+        CHECK_LE(transformed_data->width(), datum.width());
+        
+        Dtype* transformed_data_pointer = transformed_data->mutable_cpu_data();
+        Dtype* transformed_label_pointer = transformed_label->mutable_cpu_data();
+        
+        return SegTransform(datum, transformed_data_pointer, transformed_label_pointer);
+    }
+    
+    template<typename Dtype>
+    void DataTransformer<Dtype>::SegTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label) {
+        
+        const int datum_channels = datum.channels();
+        const int datum_height = datum.height();
+        const int datum_width = datum.width();
+        CHECK_GT(datum_channels, 0);
+        const int crop_size = param_.crop_size();
+        const int src_offset = datum_width * datum_height;
+        const int dst_offset = crop_size * crop_size;
+        const bool do_mirror = param_.mirror() && Rand(2) && (phase_ == TRAIN);
+        int h_off,w_off;
+        if (phase_ == TRAIN) {
+            h_off = Rand(datum_height - crop_size + 1);
+            w_off = Rand(datum_width - crop_size + 1);
+        } else {
+            h_off = (datum_height - crop_size) / 2;
+            w_off = (datum_width - crop_size) / 2;
+        }
+        cv::Rect box(w_off,h_off,crop_size,crop_size);
+        for (int i = 0; i < datum_channels; i++) {
+            cv::Mat image = grayImageFromDatum(datum, i*src_offset);
+            cv::Point ul_point;
+            cv::Mat crop_image;
+            cv::Rect square_box(w_off,h_off,crop_size,crop_size);
+            imcrop(image, crop_image, square_box, ul_point, true, 127);
+            if (do_mirror)
+                cv::flip(crop_image, image, 1);
+            else
+                image = crop_image;
+            if (i == datum_channels-1)
+                CopyToDatum(transformed_label, image, 0.0f, 1.0f);
+            else
+                CopyToDatum(transformed_data + i*dst_offset, image, 127.0f, 1.0f/255.0f);
+        }
+    }
+    
 // GOT stuff
     
     template<typename Dtype>
