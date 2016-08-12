@@ -432,16 +432,8 @@ message TransformationParameter {
   optional float corner_perturb_ratio = 8 [default = 0.2];
   // margin for cropping
   optional float crop_margin = 9 [default = 0.5];
-  // perturb frequency
-  optional float perturb_frequency = 10 [default = 0.5];
-  // blur border of binary mask 
-  optional bool blur_mask = 11 [default = false];
-  // window size of Gaussian
-  optional float blur_winsize = 12;
-  // sigma of Gaussian
-  optional float blur_sigma = 13;
-  // use gradient image for training
-  optional bool use_gradient = 14 [default = false];
+  // output segmentation
+  optional bool output_seg = 10;
 }
 
 // Message that stores parameters shared by loss layers

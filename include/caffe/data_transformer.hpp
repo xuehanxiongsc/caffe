@@ -90,6 +90,8 @@ namespace caffe {
          *     input blob. It can be part of top blob's data.
          */
         float GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label);
+        
+        void SegTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label);
 #endif  // USE_OPENCV
         
         /**
@@ -179,6 +181,7 @@ namespace caffe {
         void CopyToDatum(Dtype* data, const cv::Mat& mat, Dtype mean=0.0, Dtype div=1.0);
         float GOTTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
         
+        void SegTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
 #endif
         
     };

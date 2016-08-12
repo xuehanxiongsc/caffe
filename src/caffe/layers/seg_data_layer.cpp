@@ -9,7 +9,7 @@
 #include "caffe/common.hpp"
 #include "caffe/data_transformer.hpp"
 #include "caffe/layers/base_data_layer.hpp"
-#include "caffe/layers/got_data_layer.hpp"
+#include "caffe/layers/seg_data_layer.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/benchmark.hpp"
 #include "caffe/util/io.hpp"
@@ -19,52 +19,47 @@
 namespace caffe {
     
     template <typename Dtype>
-    GOTDataLayer<Dtype>::GOTDataLayer(const LayerParameter& param)
+    SegDataLayer<Dtype>::SegDataLayer(const LayerParameter& param)
     : BasePrefetchingDataLayer<Dtype>(param),
     reader_(param) {
     }
     
     template <typename Dtype>
-    GOTDataLayer<Dtype>::~GOTDataLayer() {
+    SegDataLayer<Dtype>::~SegDataLayer() {
         this->StopInternalThread();
     }
     
     template <typename Dtype>
-    void GOTDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
+    void SegDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
                                              const vector<Blob<Dtype>*>& top) {
         
         // Read a data point, and use it to initialize the top blob.
         Datum& datum = *(reader_.full().peek());
-        // the last channel stores label info
-        const int datum_channel = datum.channels();
+        LOG(INFO) << datum.height() << " " << datum.width() << " " << datum.channels();
+        
+        // image
         const int crop_size = this->layer_param_.transform_param().crop_size();
+        const int data_channel = datum.channels()-1;
         const int batch_size = this->layer_param_.data_param().batch_size();
         if (crop_size > 0) {
-            // top[0] stores image
-            top[0]->Reshape(batch_size, datum_channel-1, crop_size, crop_size);
+            top[0]->Reshape(batch_size, data_channel, crop_size, crop_size);
             for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-                this->prefetch_[i].data_.Reshape(batch_size, datum_channel-1, crop_size, crop_size);
+                this->prefetch_[i].data_.Reshape(batch_size, data_channel, crop_size, crop_size);
             }
-            this->transformed_data_.Reshape(batch_size, datum_channel-1, crop_size, crop_size);
+            this->transformed_data_.Reshape(batch_size, data_channel, crop_size, crop_size);
         }
         LOG(INFO) << "output data size: " << top[0]->num() << ","
         << top[0]->channels() << "," << top[0]->height() << ","
         << top[0]->width();
         
-        // top[1] stores label info
+        // label
         if (this->output_labels_) {
-            int label_width = 4;
-            int label_height = 1;
-            int label_channel = 1;
-            if (this->layer_param_.transform_param().output_seg) {
-                label_width = crop_size;
-                label_height = crop_size;
-            }
-            top[1]->Reshape(batch_size, label_channel, label_height, label_width);
+            top[1]->Reshape(batch_size, 1, crop_size, crop_size);
             for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-                this->prefetch_[i].label_.Reshape(batch_size, label_channel, label_height, label_width);
+                this->prefetch_[i].label_.Reshape(batch_size, 1, crop_size, crop_size);
             }
-            this->transformed_label_.Reshape(batch_size, label_channel, label_height, label_width);
+            this->transformed_label_.Reshape(batch_size, 1, crop_size, crop_size);
+            
             LOG(INFO) << "output label size: " << top[1]->num() << ","
             << top[1]->channels() << "," << top[1]->height() << ","
             << top[1]->width();
@@ -73,7 +68,7 @@ namespace caffe {
     
     // This function is called on prefetch thread
     template<typename Dtype>
-    void GOTDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
+    void SegDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
         
         CPUTimer batch_timer;
         batch_timer.Start();
@@ -91,7 +86,6 @@ namespace caffe {
         if (this->output_labels_) {
             top_label = batch->label_.mutable_cpu_data();
         }
-        float error0 = 0.0f;
         for (int item_id = 0; item_id < batch_size; ++item_id) {
             // get a blob
             timer.Start();
@@ -104,14 +98,12 @@ namespace caffe {
             const int offset_label = batch->label_.offset(item_id);
             this->transformed_data_.set_cpu_data(top_data + offset_data);
             this->transformed_label_.set_cpu_data(top_label + offset_label);
-            error0 += this->data_transformer_->GOTTransform(datum,
-                                                            &(this->transformed_data_),
-                                                            &(this->transformed_label_));
+            this->data_transformer_->SegTransform(datum,
+                                                  &(this->transformed_data_),
+                                                  &(this->transformed_label_));
             trans_time += timer.MicroSeconds();
             reader_.free().push(const_cast<Datum*>(&datum));
         }
-        error0 *= 0.5f;
-        LOG(INFO) << "Error0: " << error0/batch_size;
         timer.Stop();
         batch_timer.Stop();
         
@@ -122,7 +114,7 @@ namespace caffe {
 #endif
     }
     
-    INSTANTIATE_CLASS(GOTDataLayer);
-    REGISTER_LAYER_CLASS(GOTData);
+    INSTANTIATE_CLASS(SegDataLayer);
+    REGISTER_LAYER_CLASS(SegData);
     
 }  // namespace caffe
