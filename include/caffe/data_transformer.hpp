@@ -89,7 +89,7 @@ namespace caffe {
          *     This is destination blob, it will contain as many labels as the
          *     input blob. It can be part of top blob's data.
          */
-        float GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label);
+        void GOTTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label);
         
         void SegTransform(const Datum& datum, Blob<Dtype>* transformed_data, Blob<Dtype>* transformed_label);
 #endif  // USE_OPENCV
@@ -169,17 +169,38 @@ namespace caffe {
         void DecodeFloats(const string& data, size_t idx, T* pf, size_t len) {
             memcpy(pf, const_cast<char*>(&data[idx]), len * sizeof(T));
         }
+        
 #ifdef USE_OPENCV
+        struct SegLabelData {
+            cv::Size img_size;
+            int num_objects;
+            std::vector<cv::Vec4f> box; // bounding boxes, upper left and bottom right points
+        };
         struct GOTLabelData {
             cv::Size img_size;
             int num_objects;
             std::vector<std::pair<cv::Vec4f,cv::Vec4f> > boxes; // bounding boxes, upper left and bottom right points
         };
+        
+        inline void perturb_vec(cv::Vec4f& vec) {
+            int rand_num = param_.corner_perturb_ratio()*200;
+            int rand_num_half = rand_num/2;
+            float dim_x = std::abs(vec[0] - vec[2]);
+            float dim_y = std::abs(vec[1] - vec[3]);
+            vec[0] += (Rand(rand_num)-rand_num_half)*0.01f*dim_x;
+            vec[1] += (Rand(rand_num)-rand_num_half)*0.01f*dim_y;
+            vec[2] += (Rand(rand_num)-rand_num_half)*0.01f*dim_x;
+            vec[3] += (Rand(rand_num)-rand_num_half)*0.01f*dim_y;
+        }
+
+        
+        void ReadSegLabelData(SegLabelData& label_data, const std::string& data, int offset, int width);
         void ReadGOTLabelData(GOTLabelData& label_data, const std::string& data, int offset, int width);
         void GOTAugment(GOTLabelData& label_data);
         cv::Mat grayImageFromDatum(const Datum& datum, int offset);
         void CopyToDatum(Dtype* data, const cv::Mat& mat, Dtype mean=0.0, Dtype div=1.0);
         float GOTTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
+        void GOTTransform2(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
         
         void SegTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
 #endif

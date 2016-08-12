@@ -31,7 +31,7 @@ namespace caffe {
         int center_y = box.y + (box.height-1)/2;
         int offset = (new_dim-1)/2;
         return cv::Rect(center_x-offset,center_y-offset,new_dim,new_dim);
-    }
+    }    
 }
 
 #endif
