@@ -571,23 +571,25 @@ namespace caffe {
         const bool do_mirror = param_.mirror() && Rand(2) && (phase_ == TRAIN);
         int h_off,w_off;
         if (phase_ == TRAIN) {
-            h_off = Rand(datum_height - crop_size + 1);
-            w_off = Rand(datum_width - crop_size + 1);
+            h_off = Rand(crop_size - datum_height + 1);
+            w_off = Rand(crop_size - datum_width + 1);
         } else {
-            h_off = (datum_height - crop_size) / 2;
-            w_off = (datum_width - crop_size) / 2;
+            h_off = (crop_size - datum_height) / 2;
+            w_off = (crop_size - datum_width) / 2;
         }
         cv::Rect box(w_off,h_off,crop_size,crop_size);
         for (int i = 0; i < datum_channels; i++) {
             cv::Mat image = grayImageFromDatum(datum, i*src_offset);
             cv::Point ul_point;
-            cv::Mat crop_image;
-            cv::Rect square_box(w_off,h_off,crop_size,crop_size);
-            imcrop(image, crop_image, square_box, ul_point, true, 127);
+            cv::Mat pad_image = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
+            //cv::Rect square_box(w_off,h_off,crop_size,crop_size);
+            //imcrop(image, crop_image, square_box, ul_point, true, 127);
+            cv::Rect box(w_off,h_off,image.width,image.height);
+            pad_image(box) = image; 
             if (do_mirror)
-                cv::flip(crop_image, image, 1);
+                cv::flip(pad_image, image, 1);
             else
-                image = crop_image;
+                image = pad_image;
             if (i == datum_channels-1)
                 CopyToDatum(transformed_label, image, 0.0f, 1.0f);
             else

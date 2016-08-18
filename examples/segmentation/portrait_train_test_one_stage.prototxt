@@ -5,11 +5,11 @@ layer {
   top: "image"
   top: "label"
   transform_param {
-    crop_size: 300
+    crop_size: 200
     mirror: true
   }
   data_param {
-    source: "/Users/xuehan.xiong/segmentation_train_split"
+    source: "/raid/xuehan/segmentation_train_split"
     batch_size: 128
     backend: LMDB
   }
@@ -23,11 +23,11 @@ layer {
   top: "image"
   top: "label"
   transform_param {
-    crop_size: 300
+    crop_size: 200
   }
   data_param {
-    source: "/Users/xuehan.xiong/segmentation_test_split"
-    batch_size: 32
+    source: "/raid/xuehan/segmentation_test_split"
+    batch_size: 64
     backend: LMDB
   }
   include {
@@ -360,7 +360,7 @@ layer {
   top: "cropscore"
   crop_param {
     axis: 2
-    offset: 50
+    offset: 52
   }
 }
 
