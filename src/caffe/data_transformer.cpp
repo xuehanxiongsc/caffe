@@ -549,8 +549,8 @@ namespace caffe {
         CHECK_EQ(datum.channels(), label_channels + data_channels);
         CHECK_EQ(transformed_data->width(), transformed_label->width());
         CHECK_EQ(transformed_data->height(), transformed_label->height());
-        CHECK_LE(transformed_data->height(), datum.height());
-        CHECK_LE(transformed_data->width(), datum.width());
+        CHECK_GE(transformed_data->height(), datum.height());
+        CHECK_GE(transformed_data->width(), datum.width());
         
         Dtype* transformed_data_pointer = transformed_data->mutable_cpu_data();
         Dtype* transformed_label_pointer = transformed_label->mutable_cpu_data();
@@ -581,19 +581,24 @@ namespace caffe {
         for (int i = 0; i < datum_channels; i++) {
             cv::Mat image = grayImageFromDatum(datum, i*src_offset);
             cv::Point ul_point;
-            cv::Mat pad_image = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
+            cv::Mat pad_image;
+            if (i == datum_channels-1)
+                pad_image = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
+            else
+                pad_image = cv::Mat(crop_size,crop_size,CV_8UC1,cv::Scalar(127));
             //cv::Rect square_box(w_off,h_off,crop_size,crop_size);
             //imcrop(image, crop_image, square_box, ul_point, true, 127);
-            cv::Rect box(w_off,h_off,image.width,image.height);
+            cv::Rect box(w_off,h_off,image.cols,image.rows);
             pad_image(box) = image; 
+            cv::Mat flip_image;
             if (do_mirror)
-                cv::flip(pad_image, image, 1);
+                cv::flip(pad_image, flip_image, 1);
             else
-                image = pad_image;
+                flip_image = pad_image;
             if (i == datum_channels-1)
-                CopyToDatum(transformed_label, image, 0.0f, 1.0f);
+                CopyToDatum(transformed_label, flip_image, 0.0f, 1.0f);
             else
-                CopyToDatum(transformed_data + i*dst_offset, image, 127.0f, 1.0f/255.0f);
+                CopyToDatum(transformed_data + i*dst_offset, flip_image, 127.0f, 1.0f/255.0f);
         }
     }
     
