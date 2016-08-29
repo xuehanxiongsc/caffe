@@ -3,7 +3,7 @@
 # total training images: 7180
 # total testing images: 798
 # one epoch: 56 iterations
-net: "portrait_train_test_one_stage.prototxt3"
+net: "portrait_train_test_one_stage.prototxt4"
 test_iter: 15
 test_interval: 200
 base_lr: 1e-5
@@ -18,8 +18,8 @@ display: 50
 max_iter: 16000
 # snapshot intermediate results
 snapshot: 4000
-snapshot_prefix: "portrait_one_stage3"
+snapshot_prefix: "portrait_one_stage4"
 # solver mode: CPU or GPU
 # debug_info: true
 solver_mode: GPU
-device_id: 1
+device_id: 3

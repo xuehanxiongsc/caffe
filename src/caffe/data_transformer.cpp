@@ -589,7 +589,7 @@ namespace caffe {
             //cv::Rect square_box(w_off,h_off,crop_size,crop_size);
             //imcrop(image, crop_image, square_box, ul_point, true, 127);
             cv::Rect box(w_off,h_off,image.cols,image.rows);
-            pad_image(box) = image; 
+            image.copyTo(pad_image(box)); 
             cv::Mat flip_image;
             if (do_mirror)
                 cv::flip(pad_image, flip_image, 1);
