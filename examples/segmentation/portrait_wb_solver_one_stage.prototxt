@@ -1,0 +1,25 @@
+# training batch size: 128
+# testing batch size: 64
+# total training images: 7863
+# total testing images: 874
+# one epoch: 62 iterations
+net: "portrait_wb_train_test_one_stage.prototxt3"
+test_iter: 14
+test_interval: 200
+base_lr: 1e-5
+momentum: 0.9
+gamma: 0.1
+weight_decay: 1.0e-5
+# The learning rate policy
+lr_policy: "step"
+stepsize: 4000
+display: 50
+# The maximum number of iterations
+max_iter: 16000
+# snapshot intermediate results
+snapshot: 4000
+snapshot_prefix: "portrait_wb_one_stage3"
+# solver mode: CPU or GPU
+# debug_info: true
+solver_mode: GPU
+device_id: 2

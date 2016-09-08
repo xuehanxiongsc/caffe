@@ -579,10 +579,10 @@ namespace caffe {
         }
         cv::Rect box(w_off,h_off,crop_size,crop_size);
         for (int i = 0; i < datum_channels; i++) {
-            cv::Mat image = grayImageFromDatum(datum, i*src_offset);
+            cv::Mat image = singleChannelFromDatum(datum, i*src_offset);
             cv::Point ul_point;
             cv::Mat pad_image;
-            if (i == datum_channels-1)
+            if (i == datum_channels-1 || i == datum_channels-2)
                 pad_image = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
             else
                 pad_image = cv::Mat(crop_size,crop_size,CV_8UC1,cv::Scalar(127));
@@ -597,6 +597,8 @@ namespace caffe {
                 flip_image = pad_image;
             if (i == datum_channels-1)
                 CopyToDatum(transformed_label, flip_image, 0.0f, 1.0f);
+            else if (i == datum_channels-2)
+                CopyToDatum(transformed_data + i*dst_offset, flip_image, 0.0f, 1.0f/255.0f);
             else
                 CopyToDatum(transformed_data + i*dst_offset, flip_image, 127.0f, 1.0f/255.0f);
         }
@@ -663,7 +665,7 @@ namespace caffe {
     }
     
     template<typename Dtype>
-    cv::Mat DataTransformer<Dtype>::grayImageFromDatum(const Datum& datum, int offset) {
+    cv::Mat DataTransformer<Dtype>::singleChannelFromDatum(const Datum& datum, int offset) {
         const string& data = datum.data();
         const int datum_height = datum.height();
         const int datum_width = datum.width();
@@ -723,7 +725,7 @@ namespace caffe {
         cv::Point ul_point;
         // process image
         for (int i = 0; i < datum_channels-1; i++) {
-            cv::Mat image = grayImageFromDatum(datum, src_offset*i);
+            cv::Mat image = singleChannelFromDatum(datum, src_offset*i);
             cv::Mat crop_image;
             imcrop(image,  crop_image,  square_box, ul_point, true, 127);
             cv::resize(crop_image, image,  cv::Size(crop_size,crop_size));
@@ -767,8 +769,8 @@ namespace caffe {
         CHECK_GT(datum_channels, 0);
         // read current image
         int offset = datum_width * datum_height;
-        cv::Mat cur_img = grayImageFromDatum(datum, 0);
-        cv::Mat prev_img = grayImageFromDatum(datum, offset);
+        cv::Mat cur_img = singleChannelFromDatum(datum, 0);
+        cv::Mat prev_img = singleChannelFromDatum(datum, offset);
         //cv::imwrite("cur.jpg", cur_img);
         //cv::imwrite("prev.jpg", prev_img);
         ReadGOTLabelData(label_data, data, 2*offset, datum_width);

@@ -197,7 +197,7 @@ namespace caffe {
         void ReadSegLabelData(SegLabelData& label_data, const std::string& data, int offset, int width);
         void ReadGOTLabelData(GOTLabelData& label_data, const std::string& data, int offset, int width);
         void GOTAugment(GOTLabelData& label_data);
-        cv::Mat grayImageFromDatum(const Datum& datum, int offset);
+        cv::Mat singleChannelFromDatum(const Datum& datum, int offset);
         void CopyToDatum(Dtype* data, const cv::Mat& mat, Dtype mean=0.0, Dtype div=1.0);
         float GOTTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
         void GOTTransform2(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
