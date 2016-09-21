@@ -582,7 +582,7 @@ namespace caffe {
             cv::Mat image = singleChannelFromDatum(datum, i*src_offset);
             cv::Point ul_point;
             cv::Mat pad_image;
-            if (i == datum_channels-1 || i == datum_channels-2)
+            if (i == datum_channels-1)
                 pad_image = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
             else
                 pad_image = cv::Mat(crop_size,crop_size,CV_8UC1,cv::Scalar(127));
@@ -597,8 +597,6 @@ namespace caffe {
                 flip_image = pad_image;
             if (i == datum_channels-1)
                 CopyToDatum(transformed_label, flip_image, 0.0f, 1.0f);
-            else if (i == datum_channels-2)
-                CopyToDatum(transformed_data + i*dst_offset, flip_image, 0.0f, 1.0f/255.0f);
             else
                 CopyToDatum(transformed_data + i*dst_offset, flip_image, 127.0f, 1.0f/255.0f);
         }
