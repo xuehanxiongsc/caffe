@@ -9,7 +9,7 @@ layer {
     mirror: true
   }
   data_param {
-    source: "/mnt/disks/data/data/fcn/portrait_train"
+    source: "/mnt/disks/data/data/fcn/selfies_segmentation/portrait_train"
     batch_size: 256
     backend: LMDB
   }
@@ -26,7 +26,7 @@ layer {
     crop_size: 128
   }
   data_param {
-    source: "/mnt/disks/data/data/fcn/portrait_val"
+    source: "/mnt/disks/data/data/fcn/selfies_segmentation/portrait_val"
     batch_size: 256
     backend: LMDB
   }
@@ -572,9 +572,6 @@ layer {
   bottom: "cropscore"
   bottom: "label"
   top: "accuracy"
-  include {
-    phase: TRAIN
-  }
   accuracy_param {
     top_k: 1
   }
