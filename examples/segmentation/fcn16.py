@@ -30,9 +30,10 @@ def fcn16(train_lmdb, val_lmdb, batch_size):
     pool2 = max_pool(conv6,2)
     conv7 = conv15x15_block(pool2,128)
     fc0 = conv_block(conv7,1,128,stride=1,pad=0)
-    fc1 = L.Convolution(fc0, kernel_size=1, num_output=4,stride=1,pad=0)
+    fc1 = L.Convolution(fc0, kernel_size=1, num_output=4,stride=1,pad=0,
+                        weight_filler=dict(type='xavier'))
     upsample = deconv_block(fc1,ks=16,nout=4,stride=8)
-    crop = L.Crop(upsample,data,crop_param=dict(axis=2,offset=2))
+    crop = L.Crop(upsample,data,crop_param=dict(axis=2,offset=4))
     loss =  L.SoftmaxWithLoss(crop, label)
     acc = L.Accuracy(crop, label, accuracy_param=dict(top_k=1))
     return caffe.to_proto(loss,acc)

@@ -260,7 +260,7 @@ layer {
   bottom: "Eltwise1"
   top: "Convolution6"
   convolution_param {
-    num_output: 128
+    num_output: 64
     pad: 1
     kernel_size: 3
     stride: 1
@@ -295,9 +295,20 @@ layer {
   top: "Convolution6"
 }
 layer {
+  name: "Pooling2"
+  type: "Pooling"
+  bottom: "Convolution6"
+  top: "Pooling2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
   name: "Convolution7"
   type: "Convolution"
-  bottom: "Convolution6"
+  bottom: "Pooling2"
   top: "Convolution7"
   convolution_param {
     num_output: 128
@@ -341,13 +352,13 @@ layer {
   top: "Convolution8"
   convolution_param {
     num_output: 128
-    pad: 1
+    pad: 2
     kernel_size: 3
     stride: 1
     weight_filler {
       type: "xavier"
     }
-    dilation: 1
+    dilation: 2
   }
 }
 layer {
@@ -381,13 +392,13 @@ layer {
   top: "Convolution9"
   convolution_param {
     num_output: 128
-    pad: 1
+    pad: 4
     kernel_size: 3
     stride: 1
     weight_filler {
       type: "xavier"
     }
-    dilation: 1
+    dilation: 4
   }
 }
 layer {
@@ -464,6 +475,9 @@ layer {
     pad: 0
     kernel_size: 1
     stride: 1
+    weight_filler {
+      type: "xavier"
+    }
   }
 }
 layer {
@@ -473,9 +487,10 @@ layer {
   top: "Deconvolution1"
   convolution_param {
     num_output: 4
+    bias_term: false
     pad: 0
-    kernel_size: 8
-    stride: 4
+    kernel_size: 16
+    stride: 8
     weight_filler {
       type: "xavier"
     }
@@ -489,7 +504,7 @@ layer {
   top: "Crop1"
   crop_param {
     axis: 2
-    offset: 2
+    offset: 4
   }
 }
 layer {

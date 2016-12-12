@@ -25,6 +25,7 @@ def deconv_block(bottom,ks,nout,stride,pad=0):
                                kernel_size=ks, 
                                stride=stride,
                                pad=pad,
+                               bias_term=False,
                                weight_filler=dict(type='xavier')))
     return deconv
 
