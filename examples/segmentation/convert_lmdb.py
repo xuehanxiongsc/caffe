@@ -1,3 +1,4 @@
+import getopt,sys
 import numpy as np
 import cv2
 import lmdb
@@ -102,6 +103,7 @@ def writeLMDB(image_files, label_files, bgd_files, lmdb_path):
         resized_image,resized_label = _resize_image_label(img,label)
         resized_label = np.expand_dims(resized_label,axis=2)
         img4ch = np.concatenate((resized_image, resized_label), axis=2)
+        img4ch = np.transpose(img4ch, (2, 0, 1))
         datum = caffe.io.array_to_datum(img4ch, label=0)
         key = '%07d' % write_count
         txn.put(key, datum.SerializeToString())
@@ -115,9 +117,25 @@ def writeLMDB(image_files, label_files, bgd_files, lmdb_path):
         txn.commit()
     env.close()
 
-def main():
-    # write training data
-    root_dir = '/mnt/disks/data/data/fcn/selfies_segmentation'
+def usage():
+    print 'convert_lmdb.py --data_dir <data directory>'
+    
+def main(argv):
+    root_dir = ''
+    try:
+        opts, args = getopt.getopt(
+            argv,
+            "h:d:",
+            ["data_dir="])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ("-h","--help"):
+            usage()
+            sys.exit()
+        elif opt in ("-d","--data_dir"):
+            root_dir = arg
     bgd_dir = os.path.join(root_dir,'segmentation_background')
     bgd_files = get_image_files(bgd_dir)
     image_dir = os.path.join(root_dir,'train/images')
@@ -137,4 +155,4 @@ def main():
               os.path.join(root_dir,'portrait_val'))
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

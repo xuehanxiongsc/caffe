@@ -1,4 +1,4 @@
-net: "examples/segmentation/fcn_enet.prototxt"
+net: "examples/segmentation/fcn32.prototxt"
 # total test sample: 797
 # test batch size: 64
 test_iter: 13
@@ -16,5 +16,5 @@ display: 20
 # max iter: 70 epochs ~ 3925
 max_iter: 3925
 snapshot: 500
-snapshot_prefix: "examples/segmentation/fcn_enet"
-solver_mode: GPU
+snapshot_prefix: "examples/segmentation/fcn32"
+solver_mode: CPU

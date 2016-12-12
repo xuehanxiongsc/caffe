@@ -549,8 +549,8 @@ namespace caffe {
         CHECK_EQ(datum.channels(), label_channels + data_channels);
         CHECK_EQ(transformed_data->width(), transformed_label->width());
         CHECK_EQ(transformed_data->height(), transformed_label->height());
-        CHECK_GE(transformed_data->height(), datum.height());
-        CHECK_GE(transformed_data->width(), datum.width());
+        CHECK_LE(transformed_data->height(), datum.height());
+        CHECK_LE(transformed_data->width(), datum.width());
         
         Dtype* transformed_data_pointer = transformed_data->mutable_cpu_data();
         Dtype* transformed_label_pointer = transformed_label->mutable_cpu_data();
@@ -571,30 +571,24 @@ namespace caffe {
         const bool do_mirror = param_.mirror() && Rand(2) && (phase_ == TRAIN);
         int h_off,w_off;
         if (phase_ == TRAIN) {
-            h_off = Rand(crop_size - datum_height + 1);
-            w_off = Rand(crop_size - datum_width + 1);
+            h_off = Rand(datum_height - crop_size + 1);
+            w_off = Rand(datum_width - crop_size + 1);
         } else {
-            h_off = (crop_size - datum_height) / 2;
-            w_off = (crop_size - datum_width) / 2;
+            h_off = (datum_height - crop_size) / 2;
+            w_off = (datum_width -crop_size) / 2;
         }
         cv::Rect box(w_off,h_off,crop_size,crop_size);
         for (int i = 0; i < datum_channels; i++) {
             cv::Mat image = singleChannelFromDatum(datum, i*src_offset);
             cv::Point ul_point;
-            cv::Mat pad_image;
-            if (i == datum_channels-1)
-                pad_image = cv::Mat::zeros(crop_size,crop_size,CV_8UC1);
-            else
-                pad_image = cv::Mat(crop_size,crop_size,CV_8UC1,cv::Scalar(127));
-            //cv::Rect square_box(w_off,h_off,crop_size,crop_size);
-            //imcrop(image, crop_image, square_box, ul_point, true, 127);
-            cv::Rect box(w_off,h_off,image.cols,image.rows);
-            image.copyTo(pad_image(box)); 
+            cv::Mat crop_image;
+            cv::Rect square_box(w_off,h_off,crop_size,crop_size);
+            image(square_box).copyTo(crop_image); 
             cv::Mat flip_image;
             if (do_mirror)
-                cv::flip(pad_image, flip_image, 1);
+                cv::flip(crop_image, flip_image, 1);
             else
-                flip_image = pad_image;
+                flip_image = crop_image;
             if (i == datum_channels-1)
                 CopyToDatum(transformed_label, flip_image, 0.0f, 1.0f);
             else
