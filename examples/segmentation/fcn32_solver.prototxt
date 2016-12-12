@@ -1,7 +1,7 @@
 net: "examples/segmentation/fcn32.prototxt"
 # total test sample: 797
-# test batch size: 64
-test_iter: 13
+# test batch size: 128
+test_iter: 7
 test_interval: 100
 base_lr: 0.1
 momentum: 0.9
@@ -11,10 +11,11 @@ lr_policy: "step"
 # num of examples per epoch: 7177
 # batch size: 128
 # step size: 35 epochs ~ 1962
-stepsize: 1962
+stepsize: 2804
 display: 20
 # max iter: 70 epochs ~ 3925
-max_iter: 3925
-snapshot: 500
+max_iter: 5607
+snapshot: 1000
 snapshot_prefix: "examples/segmentation/fcn32"
-solver_mode: CPU
+solver_mode: GPU
+device_id: 0

@@ -1,0 +1,21 @@
+net: "examples/segmentation/fcn16.prototxt"
+# total test sample: 797
+# test batch size: 128
+test_iter: 7
+test_interval: 100
+base_lr: 0.1
+momentum: 0.9
+gamma: 0.1
+weight_decay: 1.0e-5
+lr_policy: "step"
+# num of examples per epoch: 7177
+# batch size: 128
+# step size: 50 epochs ~ 2804
+stepsize: 2804
+display: 20
+# max iter: 100 epochs ~ 5608
+max_iter: 5608
+snapshot: 1000
+snapshot_prefix: "examples/segmentation/fcn16"
+solver_mode: GPU
+device_id: 1
