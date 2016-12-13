@@ -16,6 +16,6 @@ display: 20
 # max iter: 100 epochs ~ 5608
 max_iter: 5608
 snapshot: 1000
-snapshot_prefix: "examples/segmentation/fcn16"
+snapshot_prefix: "/home/xuehan.xiong/snapshots/fcn16/fcn16"
 solver_mode: GPU
 device_id: 1
