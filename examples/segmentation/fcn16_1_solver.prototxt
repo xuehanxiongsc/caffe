@@ -1,4 +1,4 @@
-net: "examples/segmentation/fcn16.prototxt"
+net: "examples/segmentation/fcn16_1.prototxt"
 # total test sample: 797
 # test batch size: 128
 test_iter: 7
@@ -16,6 +16,6 @@ display: 20
 # max iter: 40 epochs ~ 
 max_iter: 10000
 snapshot: 1000
-snapshot_prefix: "/home/xuehan.xiong/snapshots/fcn16_exp2/fcn16"
+snapshot_prefix: "/home/xuehan.xiong/snapshots/fcn16_1/fcn16_1"
 solver_mode: GPU
-device_id: 1
+device_id: 0

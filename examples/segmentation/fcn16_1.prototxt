@@ -1,23 +1,24 @@
 layer {
   name: "Data1"
-  type: "Data"
+  type: "SegData"
   top: "Data1"
   top: "Data2"
   include {
     phase: TRAIN
   }
   transform_param {
+    mirror: true
     crop_size: 128
   }
   data_param {
-    source: "/mnt/disks/data/data/fcn/portrait_aug_train"
+    source: "/mnt/disks/data/data/fcn/selfies_segmentation/portrait_aug_train"
     batch_size: 256
     backend: LMDB
   }
 }
 layer {
   name: "Data1"
-  type: "Data"
+  type: "SegData"
   top: "Data1"
   top: "Data2"
   include {
@@ -27,8 +28,8 @@ layer {
     crop_size: 128
   }
   data_param {
-    source: "/mnt/disks/data/data/fcn/portrait_val"
-    batch_size: 256
+    source: "/mnt/disks/data/data/fcn/selfies_segmentation/portrait_val"
+    batch_size: 128
     backend: LMDB
   }
 }
@@ -73,14 +74,25 @@ layer {
   top: "Convolution1"
 }
 layer {
+  name: "Pooling1"
+  type: "Pooling"
+  bottom: "Convolution1"
+  top: "Pooling1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
   name: "Convolution2"
   type: "Convolution"
-  bottom: "Convolution1"
+  bottom: "Pooling1"
   top: "Convolution2"
   convolution_param {
-    num_output: 64
+    num_output: 32
     pad: 1
-    kernel_size: 2
+    kernel_size: 3
     stride: 1
     weight_filler {
       type: "xavier"
@@ -113,10 +125,10 @@ layer {
   top: "Convolution2"
 }
 layer {
-  name: "Pooling1"
+  name: "Pooling2"
   type: "Pooling"
   bottom: "Convolution2"
-  top: "Pooling1"
+  top: "Pooling2"
   pooling_param {
     pool: MAX
     kernel_size: 2
@@ -126,12 +138,12 @@ layer {
 layer {
   name: "Convolution3"
   type: "Convolution"
-  bottom: "Pooling1"
+  bottom: "Pooling2"
   top: "Convolution3"
   convolution_param {
-    num_output: 128
+    num_output: 64
     pad: 1
-    kernel_size: 3
+    kernel_size: 2
     stride: 1
     weight_filler {
       type: "xavier"
@@ -164,19 +176,30 @@ layer {
   top: "Convolution3"
 }
 layer {
+  name: "Pooling3"
+  type: "Pooling"
+  bottom: "Convolution3"
+  top: "Pooling3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
   name: "Convolution4"
   type: "Convolution"
-  bottom: "Convolution3"
+  bottom: "Pooling3"
   top: "Convolution4"
   convolution_param {
     num_output: 128
-    pad: 2
+    pad: 1
     kernel_size: 3
     stride: 1
     weight_filler {
       type: "xavier"
     }
-    dilation: 2
+    dilation: 1
   }
 }
 layer {
@@ -210,13 +233,13 @@ layer {
   top: "Convolution5"
   convolution_param {
     num_output: 128
-    pad: 4
+    pad: 2
     kernel_size: 3
     stride: 1
     weight_filler {
       type: "xavier"
     }
-    dilation: 4
+    dilation: 2
   }
 }
 layer {
@@ -250,13 +273,13 @@ layer {
   top: "Convolution6"
   convolution_param {
     num_output: 128
-    pad: 0
-    kernel_size: 1
+    pad: 4
+    kernel_size: 3
     stride: 1
     weight_filler {
       type: "xavier"
     }
-    dilation: 1
+    dilation: 4
   }
 }
 layer {
@@ -289,6 +312,46 @@ layer {
   bottom: "Convolution6"
   top: "Convolution7"
   convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm7"
+  type: "BatchNorm"
+  bottom: "Convolution7"
+  top: "Convolution7"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU7"
+  type: "ReLU"
+  bottom: "Convolution7"
+  top: "Convolution7"
+}
+layer {
+  name: "Convolution8"
+  type: "Convolution"
+  bottom: "Convolution7"
+  top: "Convolution8"
+  convolution_param {
     num_output: 4
     pad: 0
     kernel_size: 1
@@ -301,7 +364,7 @@ layer {
 layer {
   name: "Deconvolution1"
   type: "Deconvolution"
-  bottom: "Convolution7"
+  bottom: "Convolution8"
   top: "Deconvolution1"
   convolution_param {
     num_output: 4

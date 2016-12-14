@@ -23,7 +23,7 @@ def fcn16_1(train_lmdb, val_lmdb, batch_size):
     pool1 = max_pool(conv1,2)
     conv2 = conv_block(pool1,3,32,stride=1,pad=1)
     pool2 = max_pool(conv2,2)
-    conv3 = conv_block(conv1,2,64,stride=1,pad=1)
+    conv3 = conv_block(pool2,2,64,stride=1,pad=1)
     pool3 = max_pool(conv3,2)
     conv4 = conv15x15_block(pool3,128)
     fc0 = conv_block(conv4,1,128,stride=1,pad=0)
