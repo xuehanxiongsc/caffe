@@ -9,11 +9,13 @@ from net_util import conv15x15_block
 from net_util import conv31x31_block
 from net_util import deconv_block
 from fcn16 import fcn16
+from fcn16_1 import fcn16_1
 from fcn32 import fcn32
    
 net_map = {
     'fcn16': fcn16,
-    'fcn32': fcn32
+    'fcn32': fcn32,
+    'fcn16_1': fcn16_1
 }    
     
 def usage():

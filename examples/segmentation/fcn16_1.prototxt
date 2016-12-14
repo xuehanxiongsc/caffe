@@ -1,24 +1,23 @@
 layer {
   name: "Data1"
-  type: "SegData"
+  type: "Data"
   top: "Data1"
   top: "Data2"
   include {
     phase: TRAIN
   }
   transform_param {
-    mirror: true
     crop_size: 128
   }
   data_param {
-    source: "/mnt/disks/data/data/fcn/selfies_segmentation/portrait_aug_train"
+    source: "/mnt/disks/data/data/fcn/portrait_aug_train"
     batch_size: 256
     backend: LMDB
   }
 }
 layer {
   name: "Data1"
-  type: "SegData"
+  type: "Data"
   top: "Data1"
   top: "Data2"
   include {
@@ -28,8 +27,8 @@ layer {
     crop_size: 128
   }
   data_param {
-    source: "/mnt/disks/data/data/fcn/selfies_segmentation/portrait_val"
-    batch_size: 128
+    source: "/mnt/disks/data/data/fcn/portrait_val"
+    batch_size: 256
     backend: LMDB
   }
 }
@@ -42,7 +41,7 @@ layer {
     num_output: 16
     pad: 1
     kernel_size: 3
-    stride: 2
+    stride: 1
     weight_filler {
       type: "xavier"
     }
@@ -74,25 +73,14 @@ layer {
   top: "Convolution1"
 }
 layer {
-  name: "Pooling1"
-  type: "Pooling"
-  bottom: "Convolution1"
-  top: "Pooling1"
-  pooling_param {
-    pool: MAX
-    kernel_size: 2
-    stride: 2
-  }
-}
-layer {
   name: "Convolution2"
   type: "Convolution"
-  bottom: "Pooling1"
+  bottom: "Convolution1"
   top: "Convolution2"
   convolution_param {
     num_output: 64
-    pad: 0
-    kernel_size: 1
+    pad: 1
+    kernel_size: 2
     stride: 1
     weight_filler {
       type: "xavier"
@@ -125,15 +113,26 @@ layer {
   top: "Convolution2"
 }
 layer {
-  name: "Convolution3"
-  type: "Convolution"
-  bottom: "Convolution1"
-  top: "Convolution3"
-  convolution_param {
-    num_output: 16
-    pad: 0
+  name: "Pooling1"
+  type: "Pooling"
+  bottom: "Convolution2"
+  top: "Pooling1"
+  pooling_param {
+    pool: MAX
     kernel_size: 2
     stride: 2
+  }
+}
+layer {
+  name: "Convolution3"
+  type: "Convolution"
+  bottom: "Pooling1"
+  top: "Convolution3"
+  convolution_param {
+    num_output: 128
+    pad: 1
+    kernel_size: 3
+    stride: 1
     weight_filler {
       type: "xavier"
     }
@@ -170,14 +169,14 @@ layer {
   bottom: "Convolution3"
   top: "Convolution4"
   convolution_param {
-    num_output: 16
-    pad: 1
+    num_output: 128
+    pad: 2
     kernel_size: 3
     stride: 1
     weight_filler {
       type: "xavier"
     }
-    dilation: 1
+    dilation: 2
   }
 }
 layer {
@@ -210,14 +209,14 @@ layer {
   bottom: "Convolution4"
   top: "Convolution5"
   convolution_param {
-    num_output: 64
-    pad: 0
-    kernel_size: 1
+    num_output: 128
+    pad: 4
+    kernel_size: 3
     stride: 1
     weight_filler {
       type: "xavier"
     }
-    dilation: 1
+    dilation: 4
   }
 }
 layer {
@@ -245,24 +244,14 @@ layer {
   top: "Convolution5"
 }
 layer {
-  name: "Eltwise1"
-  type: "Eltwise"
-  bottom: "Convolution2"
-  bottom: "Convolution5"
-  top: "Eltwise1"
-  eltwise_param {
-    operation: SUM
-  }
-}
-layer {
   name: "Convolution6"
   type: "Convolution"
-  bottom: "Eltwise1"
+  bottom: "Convolution5"
   top: "Convolution6"
   convolution_param {
-    num_output: 64
-    pad: 1
-    kernel_size: 3
+    num_output: 128
+    pad: 0
+    kernel_size: 1
     stride: 1
     weight_filler {
       type: "xavier"
@@ -295,181 +284,10 @@ layer {
   top: "Convolution6"
 }
 layer {
-  name: "Pooling2"
-  type: "Pooling"
-  bottom: "Convolution6"
-  top: "Pooling2"
-  pooling_param {
-    pool: MAX
-    kernel_size: 2
-    stride: 2
-  }
-}
-layer {
   name: "Convolution7"
   type: "Convolution"
-  bottom: "Pooling2"
+  bottom: "Convolution6"
   top: "Convolution7"
-  convolution_param {
-    num_output: 128
-    pad: 1
-    kernel_size: 3
-    stride: 1
-    weight_filler {
-      type: "xavier"
-    }
-    dilation: 1
-  }
-}
-layer {
-  name: "BatchNorm7"
-  type: "BatchNorm"
-  bottom: "Convolution7"
-  top: "Convolution7"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-}
-layer {
-  name: "ReLU7"
-  type: "ReLU"
-  bottom: "Convolution7"
-  top: "Convolution7"
-}
-layer {
-  name: "Convolution8"
-  type: "Convolution"
-  bottom: "Convolution7"
-  top: "Convolution8"
-  convolution_param {
-    num_output: 128
-    pad: 2
-    kernel_size: 3
-    stride: 1
-    weight_filler {
-      type: "xavier"
-    }
-    dilation: 2
-  }
-}
-layer {
-  name: "BatchNorm8"
-  type: "BatchNorm"
-  bottom: "Convolution8"
-  top: "Convolution8"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-}
-layer {
-  name: "ReLU8"
-  type: "ReLU"
-  bottom: "Convolution8"
-  top: "Convolution8"
-}
-layer {
-  name: "Convolution9"
-  type: "Convolution"
-  bottom: "Convolution8"
-  top: "Convolution9"
-  convolution_param {
-    num_output: 128
-    pad: 4
-    kernel_size: 3
-    stride: 1
-    weight_filler {
-      type: "xavier"
-    }
-    dilation: 4
-  }
-}
-layer {
-  name: "BatchNorm9"
-  type: "BatchNorm"
-  bottom: "Convolution9"
-  top: "Convolution9"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-}
-layer {
-  name: "ReLU9"
-  type: "ReLU"
-  bottom: "Convolution9"
-  top: "Convolution9"
-}
-layer {
-  name: "Convolution10"
-  type: "Convolution"
-  bottom: "Convolution9"
-  top: "Convolution10"
-  convolution_param {
-    num_output: 128
-    pad: 0
-    kernel_size: 1
-    stride: 1
-    weight_filler {
-      type: "xavier"
-    }
-    dilation: 1
-  }
-}
-layer {
-  name: "BatchNorm10"
-  type: "BatchNorm"
-  bottom: "Convolution10"
-  top: "Convolution10"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-}
-layer {
-  name: "ReLU10"
-  type: "ReLU"
-  bottom: "Convolution10"
-  top: "Convolution10"
-}
-layer {
-  name: "Convolution11"
-  type: "Convolution"
-  bottom: "Convolution10"
-  top: "Convolution11"
   convolution_param {
     num_output: 4
     pad: 0
@@ -483,7 +301,7 @@ layer {
 layer {
   name: "Deconvolution1"
   type: "Deconvolution"
-  bottom: "Convolution11"
+  bottom: "Convolution7"
   top: "Deconvolution1"
   convolution_param {
     num_output: 4
