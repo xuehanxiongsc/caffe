@@ -2,20 +2,16 @@ import getopt,sys
 import caffe
 from caffe import layers as L, params as P
 from caffe.proto import caffe_pb2
-from net_util import max_pool
-from net_util import conv_block
-from net_util import eltwise_sum
-from net_util import conv15x15_block
-from net_util import conv31x31_block
-from net_util import deconv_block
 from fcn16 import fcn16
 from fcn16_1 import fcn16_1
 from fcn32 import fcn32
+from fcn16_enet import fcn16_enet
    
 net_map = {
     'fcn16': fcn16,
     'fcn32': fcn32,
-    'fcn16_1': fcn16_1
+    'fcn16_1': fcn16_1,
+    'fcn16_enet': fcn16_enet
 }    
     
 def usage():

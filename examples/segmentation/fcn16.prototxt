@@ -29,7 +29,7 @@ layer {
   }
   data_param {
     source: "/mnt/disks/data/data/fcn/selfies_segmentation/portrait_val"
-    batch_size: 128
+    batch_size: 1
     backend: LMDB
   }
 }
