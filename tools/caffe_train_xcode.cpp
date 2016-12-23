@@ -60,7 +60,7 @@ caffe::SolverAction::Enum GetRequestedAction(
 
 // Train / Finetune a model.
 int train() {
-    const std::string solver_file("/Users/xuehan.xiong/framework/caffe/examples/generic_object_tracking/got_solver.prototxt");
+    const std::string solver_file("/Users/xuehan.xiong/framework/dot/python/cpm8_enet_solver.prototxt");
     caffe::SolverParameter solver_param;
     caffe::ReadSolverParamsFromTextFileOrDie(solver_file, &solver_param);
     
