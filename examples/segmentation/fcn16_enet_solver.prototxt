@@ -3,19 +3,19 @@ net: "examples/segmentation/fcn16_enet.prototxt"
 # test batch size: 128
 test_iter: 7
 test_interval: 100
-base_lr: 0.1
+base_lr: 0.05
 momentum: 0.9
 gamma: 0.3
-weight_decay: 1.0e-5
+weight_decay: 1.0e-4
 lr_policy: "multistep"
 # num of examples per epoch: 7177*5
 # batch size: 256
-stepvalue: 8411 # 60 epochs
-stepvalue: 11214 # 80 epochs
+stepvalue: 9111 # 65 epochs
+stepvalue: 13317 # 95 epochs
 display: 20
-# max iter: 100 epochs ~ 
-max_iter: 14000
+# max iter: 125 epochs ~ 
+max_iter: 17522
 snapshot: 1000
-snapshot_prefix: "/home/xuehan.xiong/snapshots/fcn16_enet/fcn16_enet"
+snapshot_prefix: "/home/xuehan.xiong/snapshots/fcn16_enet0/fcn16_enet"
 solver_mode: GPU
 device_id: 1
