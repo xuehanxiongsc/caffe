@@ -432,8 +432,22 @@ message TransformationParameter {
   optional float corner_perturb_ratio = 8 [default = 0.2];
   // margin for cropping
   optional float crop_margin = 9 [default = 0.5];
-  // output segmentation
-  optional bool output_seg = 10;
+  // min scale
+  optional float min_scale = 11 [default = 1.0];
+  // max scale
+  optional float max_scale = 12 [default = 1.0];
+  // max translation perturbation
+  optional uint32 max_shift = 13 [default = 0];
+  // heatmap sigma
+  optional float sigma = 14 [default = 4.0];
+  // flip indices
+  repeated uint32 flip_index = 15;
+  // number of landmarks
+  optional uint32 num_landmarks = 16;
+  // abs scale
+  optional float abs_scale = 17 [default = 1.0];
+  // centermap sigma
+  optional float centermap_sigma = 18 [default = 12.0];
 }
 
 // Message that stores parameters shared by loss layers
