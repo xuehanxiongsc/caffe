@@ -1,0 +1,2186 @@
+layer {
+  name: "Data1"
+  type: "LandmarkData"
+  top: "Data1"
+  top: "Data2"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    mirror: true
+    crop_size: 128
+    min_scale: 0.7
+    max_scale: 1.3
+    abs_scale: 0.6
+    num_landmarks: 14
+    sigma: 4.2
+    centermap_sigma: 12.4
+    max_shift: 5
+    flip_index: 5
+    flip_index: 4
+    flip_index: 3
+    flip_index: 2
+    flip_index: 1
+    flip_index: 0
+    flip_index: 11
+    flip_index: 10
+    flip_index: 9
+    flip_index: 8
+    flip_index: 7
+    flip_index: 6
+    flip_index: 12
+    flip_index: 13
+  }
+  data_param {
+    source: "/mnt/disks/data/data/human_pose/mpi_train"
+    batch_size: 128
+    backend: LMDB
+  }
+}
+layer {
+  name: "Data1"
+  type: "LandmarkData"
+  top: "Data1"
+  top: "Data2"
+  include {
+    phase: TEST
+  }
+  transform_param {
+    crop_size: 128
+    num_landmarks: 14
+    sigma: 4.2
+    abs_scale: 0.6
+    centermap_sigma: 12.4
+  }
+  data_param {
+    source: "/mnt/disks/data/data/human_pose/mpi_val"
+    batch_size: 32
+    backend: LMDB
+  }
+}
+layer {
+  name: "Slice1"
+  type: "Slice"
+  bottom: "Data1"
+  top: "Slice1"
+  top: "Slice2"
+  slice_param {
+    slice_point: 3
+    axis: 1
+  }
+}
+layer {
+  name: "Convolution1"
+  type: "Convolution"
+  bottom: "Slice1"
+  top: "Convolution1"
+  convolution_param {
+    num_output: 16
+    pad: 1
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm1"
+  type: "BatchNorm"
+  bottom: "Convolution1"
+  top: "Convolution1"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU1"
+  type: "ReLU"
+  bottom: "Convolution1"
+  top: "Convolution1"
+}
+layer {
+  name: "Pooling1"
+  type: "Pooling"
+  bottom: "Convolution1"
+  top: "Pooling1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "Convolution2"
+  type: "Convolution"
+  bottom: "Pooling1"
+  top: "Convolution2"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm2"
+  type: "BatchNorm"
+  bottom: "Convolution2"
+  top: "Convolution2"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU2"
+  type: "ReLU"
+  bottom: "Convolution2"
+  top: "Convolution2"
+}
+layer {
+  name: "Convolution3"
+  type: "Convolution"
+  bottom: "Convolution1"
+  top: "Convolution3"
+  convolution_param {
+    num_output: 16
+    pad: 0
+    kernel_size: 2
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm3"
+  type: "BatchNorm"
+  bottom: "Convolution3"
+  top: "Convolution3"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU3"
+  type: "ReLU"
+  bottom: "Convolution3"
+  top: "Convolution3"
+}
+layer {
+  name: "Convolution4"
+  type: "Convolution"
+  bottom: "Convolution3"
+  top: "Convolution4"
+  convolution_param {
+    num_output: 16
+    pad: 1
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm4"
+  type: "BatchNorm"
+  bottom: "Convolution4"
+  top: "Convolution4"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU4"
+  type: "ReLU"
+  bottom: "Convolution4"
+  top: "Convolution4"
+}
+layer {
+  name: "Convolution5"
+  type: "Convolution"
+  bottom: "Convolution4"
+  top: "Convolution5"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm5"
+  type: "BatchNorm"
+  bottom: "Convolution5"
+  top: "Convolution5"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU5"
+  type: "ReLU"
+  bottom: "Convolution5"
+  top: "Convolution5"
+}
+layer {
+  name: "Eltwise1"
+  type: "Eltwise"
+  bottom: "Convolution2"
+  bottom: "Convolution5"
+  top: "Eltwise1"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Pooling2"
+  type: "Pooling"
+  bottom: "Eltwise1"
+  top: "Pooling2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "Convolution6"
+  type: "Convolution"
+  bottom: "Pooling2"
+  top: "Convolution6"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm6"
+  type: "BatchNorm"
+  bottom: "Convolution6"
+  top: "Convolution6"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU6"
+  type: "ReLU"
+  bottom: "Convolution6"
+  top: "Convolution6"
+}
+layer {
+  name: "Convolution7"
+  type: "Convolution"
+  bottom: "Eltwise1"
+  top: "Convolution7"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 2
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm7"
+  type: "BatchNorm"
+  bottom: "Convolution7"
+  top: "Convolution7"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU7"
+  type: "ReLU"
+  bottom: "Convolution7"
+  top: "Convolution7"
+}
+layer {
+  name: "Convolution8"
+  type: "Convolution"
+  bottom: "Convolution7"
+  top: "Convolution8"
+  convolution_param {
+    num_output: 32
+    pad: 1
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm8"
+  type: "BatchNorm"
+  bottom: "Convolution8"
+  top: "Convolution8"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU8"
+  type: "ReLU"
+  bottom: "Convolution8"
+  top: "Convolution8"
+}
+layer {
+  name: "Convolution9"
+  type: "Convolution"
+  bottom: "Convolution8"
+  top: "Convolution9"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm9"
+  type: "BatchNorm"
+  bottom: "Convolution9"
+  top: "Convolution9"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU9"
+  type: "ReLU"
+  bottom: "Convolution9"
+  top: "Convolution9"
+}
+layer {
+  name: "Eltwise2"
+  type: "Eltwise"
+  bottom: "Convolution6"
+  bottom: "Convolution9"
+  top: "Eltwise2"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Convolution10"
+  type: "Convolution"
+  bottom: "Eltwise2"
+  top: "Convolution10"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm10"
+  type: "BatchNorm"
+  bottom: "Convolution10"
+  top: "Convolution10"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU10"
+  type: "ReLU"
+  bottom: "Convolution10"
+  top: "Convolution10"
+}
+layer {
+  name: "Convolution11"
+  type: "Convolution"
+  bottom: "Convolution10"
+  top: "Convolution11"
+  convolution_param {
+    num_output: 32
+    pad: 1
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm11"
+  type: "BatchNorm"
+  bottom: "Convolution11"
+  top: "Convolution11"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU11"
+  type: "ReLU"
+  bottom: "Convolution11"
+  top: "Convolution11"
+}
+layer {
+  name: "Convolution12"
+  type: "Convolution"
+  bottom: "Convolution11"
+  top: "Convolution12"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm12"
+  type: "BatchNorm"
+  bottom: "Convolution12"
+  top: "Convolution12"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU12"
+  type: "ReLU"
+  bottom: "Convolution12"
+  top: "Convolution12"
+}
+layer {
+  name: "Eltwise3"
+  type: "Eltwise"
+  bottom: "Eltwise2"
+  bottom: "Convolution12"
+  top: "Eltwise3"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Convolution13"
+  type: "Convolution"
+  bottom: "Eltwise3"
+  top: "Convolution13"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm13"
+  type: "BatchNorm"
+  bottom: "Convolution13"
+  top: "Convolution13"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU13"
+  type: "ReLU"
+  bottom: "Convolution13"
+  top: "Convolution13"
+}
+layer {
+  name: "Convolution14"
+  type: "Convolution"
+  bottom: "Convolution13"
+  top: "Convolution14"
+  convolution_param {
+    num_output: 32
+    pad: 2
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 2
+  }
+}
+layer {
+  name: "BatchNorm14"
+  type: "BatchNorm"
+  bottom: "Convolution14"
+  top: "Convolution14"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU14"
+  type: "ReLU"
+  bottom: "Convolution14"
+  top: "Convolution14"
+}
+layer {
+  name: "Convolution15"
+  type: "Convolution"
+  bottom: "Convolution14"
+  top: "Convolution15"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm15"
+  type: "BatchNorm"
+  bottom: "Convolution15"
+  top: "Convolution15"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU15"
+  type: "ReLU"
+  bottom: "Convolution15"
+  top: "Convolution15"
+}
+layer {
+  name: "Eltwise4"
+  type: "Eltwise"
+  bottom: "Eltwise3"
+  bottom: "Convolution15"
+  top: "Eltwise4"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Convolution16"
+  type: "Convolution"
+  bottom: "Eltwise4"
+  top: "Convolution16"
+  convolution_param {
+    num_output: 15
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+layer {
+  name: "Deconvolution1"
+  type: "Deconvolution"
+  bottom: "Convolution16"
+  top: "Deconvolution1"
+  convolution_param {
+    num_output: 15
+    bias_term: false
+    pad: 4
+    kernel_size: 16
+    stride: 8
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+layer {
+  name: "Slice3"
+  type: "Slice"
+  bottom: "Data2"
+  top: "Slice3"
+  top: "Slice4"
+  slice_param {
+    slice_point: 15
+    axis: 1
+  }
+}
+layer {
+  name: "SigmoidCrossEntropyLoss1"
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "Deconvolution1"
+  bottom: "Slice3"
+  top: "SigmoidCrossEntropyLoss1"
+  loss_param {
+    normalization: VALID
+  }
+}
+layer {
+  name: "Convolution17"
+  type: "Convolution"
+  bottom: "Slice1"
+  top: "Convolution17"
+  convolution_param {
+    num_output: 16
+    pad: 1
+    kernel_size: 3
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm16"
+  type: "BatchNorm"
+  bottom: "Convolution17"
+  top: "Convolution17"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU16"
+  type: "ReLU"
+  bottom: "Convolution17"
+  top: "Convolution17"
+}
+layer {
+  name: "Pooling3"
+  type: "Pooling"
+  bottom: "Convolution17"
+  top: "Pooling3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "Convolution18"
+  type: "Convolution"
+  bottom: "Pooling3"
+  top: "Convolution18"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm17"
+  type: "BatchNorm"
+  bottom: "Convolution18"
+  top: "Convolution18"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU17"
+  type: "ReLU"
+  bottom: "Convolution18"
+  top: "Convolution18"
+}
+layer {
+  name: "Convolution19"
+  type: "Convolution"
+  bottom: "Convolution17"
+  top: "Convolution19"
+  convolution_param {
+    num_output: 16
+    pad: 0
+    kernel_size: 2
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm18"
+  type: "BatchNorm"
+  bottom: "Convolution19"
+  top: "Convolution19"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU18"
+  type: "ReLU"
+  bottom: "Convolution19"
+  top: "Convolution19"
+}
+layer {
+  name: "Convolution20"
+  type: "Convolution"
+  bottom: "Convolution19"
+  top: "Convolution20"
+  convolution_param {
+    num_output: 16
+    pad: 1
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm19"
+  type: "BatchNorm"
+  bottom: "Convolution20"
+  top: "Convolution20"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU19"
+  type: "ReLU"
+  bottom: "Convolution20"
+  top: "Convolution20"
+}
+layer {
+  name: "Convolution21"
+  type: "Convolution"
+  bottom: "Convolution20"
+  top: "Convolution21"
+  convolution_param {
+    num_output: 64
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm20"
+  type: "BatchNorm"
+  bottom: "Convolution21"
+  top: "Convolution21"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU20"
+  type: "ReLU"
+  bottom: "Convolution21"
+  top: "Convolution21"
+}
+layer {
+  name: "Eltwise5"
+  type: "Eltwise"
+  bottom: "Convolution18"
+  bottom: "Convolution21"
+  top: "Eltwise5"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Pooling4"
+  type: "Pooling"
+  bottom: "Eltwise5"
+  top: "Pooling4"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "Convolution22"
+  type: "Convolution"
+  bottom: "Pooling4"
+  top: "Convolution22"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm21"
+  type: "BatchNorm"
+  bottom: "Convolution22"
+  top: "Convolution22"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU21"
+  type: "ReLU"
+  bottom: "Convolution22"
+  top: "Convolution22"
+}
+layer {
+  name: "Convolution23"
+  type: "Convolution"
+  bottom: "Eltwise5"
+  top: "Convolution23"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 2
+    stride: 2
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm22"
+  type: "BatchNorm"
+  bottom: "Convolution23"
+  top: "Convolution23"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU22"
+  type: "ReLU"
+  bottom: "Convolution23"
+  top: "Convolution23"
+}
+layer {
+  name: "Convolution24"
+  type: "Convolution"
+  bottom: "Convolution23"
+  top: "Convolution24"
+  convolution_param {
+    num_output: 32
+    pad: 1
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm23"
+  type: "BatchNorm"
+  bottom: "Convolution24"
+  top: "Convolution24"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU23"
+  type: "ReLU"
+  bottom: "Convolution24"
+  top: "Convolution24"
+}
+layer {
+  name: "Convolution25"
+  type: "Convolution"
+  bottom: "Convolution24"
+  top: "Convolution25"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm24"
+  type: "BatchNorm"
+  bottom: "Convolution25"
+  top: "Convolution25"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU24"
+  type: "ReLU"
+  bottom: "Convolution25"
+  top: "Convolution25"
+}
+layer {
+  name: "Eltwise6"
+  type: "Eltwise"
+  bottom: "Convolution22"
+  bottom: "Convolution25"
+  top: "Eltwise6"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Convolution26"
+  type: "Convolution"
+  bottom: "Eltwise6"
+  top: "Convolution26"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm25"
+  type: "BatchNorm"
+  bottom: "Convolution26"
+  top: "Convolution26"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU25"
+  type: "ReLU"
+  bottom: "Convolution26"
+  top: "Convolution26"
+}
+layer {
+  name: "Pooling5"
+  type: "Pooling"
+  bottom: "Slice2"
+  top: "Pooling5"
+  pooling_param {
+    pool: AVE
+    kernel_size: 9
+    stride: 8
+  }
+}
+layer {
+  name: "Concat1"
+  type: "Concat"
+  bottom: "Convolution26"
+  bottom: "Convolution16"
+  bottom: "Pooling5"
+  top: "Concat1"
+  concat_param {
+    axis: 1
+  }
+}
+layer {
+  name: "Convolution27"
+  type: "Convolution"
+  bottom: "Concat1"
+  top: "Convolution27"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm26"
+  type: "BatchNorm"
+  bottom: "Convolution27"
+  top: "Convolution27"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU26"
+  type: "ReLU"
+  bottom: "Convolution27"
+  top: "Convolution27"
+}
+layer {
+  name: "Convolution28"
+  type: "Convolution"
+  bottom: "Convolution27"
+  top: "Convolution28"
+  convolution_param {
+    num_output: 32
+    pad: 2
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 2
+  }
+}
+layer {
+  name: "BatchNorm27"
+  type: "BatchNorm"
+  bottom: "Convolution28"
+  top: "Convolution28"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU27"
+  type: "ReLU"
+  bottom: "Convolution28"
+  top: "Convolution28"
+}
+layer {
+  name: "Convolution29"
+  type: "Convolution"
+  bottom: "Convolution28"
+  top: "Convolution29"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm28"
+  type: "BatchNorm"
+  bottom: "Convolution29"
+  top: "Convolution29"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU28"
+  type: "ReLU"
+  bottom: "Convolution29"
+  top: "Convolution29"
+}
+layer {
+  name: "Convolution30"
+  type: "Convolution"
+  bottom: "Convolution29"
+  top: "Convolution30"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm29"
+  type: "BatchNorm"
+  bottom: "Convolution30"
+  top: "Convolution30"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU29"
+  type: "ReLU"
+  bottom: "Convolution30"
+  top: "Convolution30"
+}
+layer {
+  name: "Convolution31"
+  type: "Convolution"
+  bottom: "Convolution30"
+  top: "Convolution31"
+  convolution_param {
+    num_output: 32
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    pad_h: 0
+    pad_w: 2
+    kernel_h: 1
+    kernel_w: 5
+  }
+}
+layer {
+  name: "BatchNorm30"
+  type: "BatchNorm"
+  bottom: "Convolution31"
+  top: "Convolution31"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU30"
+  type: "ReLU"
+  bottom: "Convolution31"
+  top: "Convolution31"
+}
+layer {
+  name: "Convolution32"
+  type: "Convolution"
+  bottom: "Convolution31"
+  top: "Convolution32"
+  convolution_param {
+    num_output: 32
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    pad_h: 2
+    pad_w: 0
+    kernel_h: 5
+    kernel_w: 1
+  }
+}
+layer {
+  name: "BatchNorm31"
+  type: "BatchNorm"
+  bottom: "Convolution32"
+  top: "Convolution32"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU31"
+  type: "ReLU"
+  bottom: "Convolution32"
+  top: "Convolution32"
+}
+layer {
+  name: "Convolution33"
+  type: "Convolution"
+  bottom: "Convolution32"
+  top: "Convolution33"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm32"
+  type: "BatchNorm"
+  bottom: "Convolution33"
+  top: "Convolution33"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU32"
+  type: "ReLU"
+  bottom: "Convolution33"
+  top: "Convolution33"
+}
+layer {
+  name: "Eltwise7"
+  type: "Eltwise"
+  bottom: "Convolution29"
+  bottom: "Convolution33"
+  top: "Eltwise7"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Convolution34"
+  type: "Convolution"
+  bottom: "Eltwise7"
+  top: "Convolution34"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm33"
+  type: "BatchNorm"
+  bottom: "Convolution34"
+  top: "Convolution34"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU33"
+  type: "ReLU"
+  bottom: "Convolution34"
+  top: "Convolution34"
+}
+layer {
+  name: "Convolution35"
+  type: "Convolution"
+  bottom: "Convolution34"
+  top: "Convolution35"
+  convolution_param {
+    num_output: 32
+    pad: 4
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 4
+  }
+}
+layer {
+  name: "BatchNorm34"
+  type: "BatchNorm"
+  bottom: "Convolution35"
+  top: "Convolution35"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU34"
+  type: "ReLU"
+  bottom: "Convolution35"
+  top: "Convolution35"
+}
+layer {
+  name: "Convolution36"
+  type: "Convolution"
+  bottom: "Convolution35"
+  top: "Convolution36"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm35"
+  type: "BatchNorm"
+  bottom: "Convolution36"
+  top: "Convolution36"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU35"
+  type: "ReLU"
+  bottom: "Convolution36"
+  top: "Convolution36"
+}
+layer {
+  name: "Eltwise8"
+  type: "Eltwise"
+  bottom: "Eltwise7"
+  bottom: "Convolution36"
+  top: "Eltwise8"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Convolution37"
+  type: "Convolution"
+  bottom: "Eltwise8"
+  top: "Convolution37"
+  convolution_param {
+    num_output: 15
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+layer {
+  name: "Deconvolution2"
+  type: "Deconvolution"
+  bottom: "Convolution37"
+  top: "Deconvolution2"
+  convolution_param {
+    num_output: 15
+    bias_term: false
+    pad: 4
+    kernel_size: 16
+    stride: 8
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+layer {
+  name: "SigmoidCrossEntropyLoss2"
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "Deconvolution2"
+  bottom: "Slice4"
+  top: "SigmoidCrossEntropyLoss2"
+  loss_param {
+    normalization: VALID
+  }
+}
+layer {
+  name: "Concat2"
+  type: "Concat"
+  bottom: "Convolution26"
+  bottom: "Convolution37"
+  bottom: "Pooling5"
+  top: "Concat2"
+  concat_param {
+    axis: 1
+  }
+}
+layer {
+  name: "Convolution38"
+  type: "Convolution"
+  bottom: "Concat2"
+  top: "Convolution38"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm36"
+  type: "BatchNorm"
+  bottom: "Convolution38"
+  top: "Convolution38"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU36"
+  type: "ReLU"
+  bottom: "Convolution38"
+  top: "Convolution38"
+}
+layer {
+  name: "Convolution39"
+  type: "Convolution"
+  bottom: "Convolution38"
+  top: "Convolution39"
+  convolution_param {
+    num_output: 32
+    pad: 2
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 2
+  }
+}
+layer {
+  name: "BatchNorm37"
+  type: "BatchNorm"
+  bottom: "Convolution39"
+  top: "Convolution39"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU37"
+  type: "ReLU"
+  bottom: "Convolution39"
+  top: "Convolution39"
+}
+layer {
+  name: "Convolution40"
+  type: "Convolution"
+  bottom: "Convolution39"
+  top: "Convolution40"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm38"
+  type: "BatchNorm"
+  bottom: "Convolution40"
+  top: "Convolution40"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU38"
+  type: "ReLU"
+  bottom: "Convolution40"
+  top: "Convolution40"
+}
+layer {
+  name: "Convolution41"
+  type: "Convolution"
+  bottom: "Convolution40"
+  top: "Convolution41"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm39"
+  type: "BatchNorm"
+  bottom: "Convolution41"
+  top: "Convolution41"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU39"
+  type: "ReLU"
+  bottom: "Convolution41"
+  top: "Convolution41"
+}
+layer {
+  name: "Convolution42"
+  type: "Convolution"
+  bottom: "Convolution41"
+  top: "Convolution42"
+  convolution_param {
+    num_output: 32
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    pad_h: 0
+    pad_w: 2
+    kernel_h: 1
+    kernel_w: 5
+  }
+}
+layer {
+  name: "BatchNorm40"
+  type: "BatchNorm"
+  bottom: "Convolution42"
+  top: "Convolution42"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU40"
+  type: "ReLU"
+  bottom: "Convolution42"
+  top: "Convolution42"
+}
+layer {
+  name: "Convolution43"
+  type: "Convolution"
+  bottom: "Convolution42"
+  top: "Convolution43"
+  convolution_param {
+    num_output: 32
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    pad_h: 2
+    pad_w: 0
+    kernel_h: 5
+    kernel_w: 1
+  }
+}
+layer {
+  name: "BatchNorm41"
+  type: "BatchNorm"
+  bottom: "Convolution43"
+  top: "Convolution43"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU41"
+  type: "ReLU"
+  bottom: "Convolution43"
+  top: "Convolution43"
+}
+layer {
+  name: "Convolution44"
+  type: "Convolution"
+  bottom: "Convolution43"
+  top: "Convolution44"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm42"
+  type: "BatchNorm"
+  bottom: "Convolution44"
+  top: "Convolution44"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU42"
+  type: "ReLU"
+  bottom: "Convolution44"
+  top: "Convolution44"
+}
+layer {
+  name: "Eltwise9"
+  type: "Eltwise"
+  bottom: "Convolution40"
+  bottom: "Convolution44"
+  top: "Eltwise9"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Convolution45"
+  type: "Convolution"
+  bottom: "Eltwise9"
+  top: "Convolution45"
+  convolution_param {
+    num_output: 32
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm43"
+  type: "BatchNorm"
+  bottom: "Convolution45"
+  top: "Convolution45"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU43"
+  type: "ReLU"
+  bottom: "Convolution45"
+  top: "Convolution45"
+}
+layer {
+  name: "Convolution46"
+  type: "Convolution"
+  bottom: "Convolution45"
+  top: "Convolution46"
+  convolution_param {
+    num_output: 32
+    pad: 4
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 4
+  }
+}
+layer {
+  name: "BatchNorm44"
+  type: "BatchNorm"
+  bottom: "Convolution46"
+  top: "Convolution46"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU44"
+  type: "ReLU"
+  bottom: "Convolution46"
+  top: "Convolution46"
+}
+layer {
+  name: "Convolution47"
+  type: "Convolution"
+  bottom: "Convolution46"
+  top: "Convolution47"
+  convolution_param {
+    num_output: 128
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    dilation: 1
+  }
+}
+layer {
+  name: "BatchNorm45"
+  type: "BatchNorm"
+  bottom: "Convolution47"
+  top: "Convolution47"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+}
+layer {
+  name: "ReLU45"
+  type: "ReLU"
+  bottom: "Convolution47"
+  top: "Convolution47"
+}
+layer {
+  name: "Eltwise10"
+  type: "Eltwise"
+  bottom: "Eltwise9"
+  bottom: "Convolution47"
+  top: "Eltwise10"
+  eltwise_param {
+    operation: SUM
+  }
+}
+layer {
+  name: "Convolution48"
+  type: "Convolution"
+  bottom: "Eltwise10"
+  top: "Convolution48"
+  convolution_param {
+    num_output: 15
+    pad: 0
+    kernel_size: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+layer {
+  name: "Deconvolution3"
+  type: "Deconvolution"
+  bottom: "Convolution48"
+  top: "Deconvolution3"
+  convolution_param {
+    num_output: 15
+    bias_term: false
+    pad: 4
+    kernel_size: 16
+    stride: 8
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+layer {
+  name: "SigmoidCrossEntropyLoss3"
+  type: "SigmoidCrossEntropyLoss"
+  bottom: "Deconvolution3"
+  bottom: "Slice4"
+  top: "SigmoidCrossEntropyLoss3"
+  loss_param {
+    normalization: VALID
+  }
+}
