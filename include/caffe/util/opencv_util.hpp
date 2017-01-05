@@ -30,7 +30,7 @@ void UpdateHeatmap(T* data, const cv::Point2f& pt, int height, int width,
     float dy2 = (i-pt.y)*(i-pt.y);
     for (int j = 0; j < width; j++) {
       float diff = (dy2 + (j-pt.x)*(j-pt.x))*inv_sigma_sqr;
-      data[count] += (diff < 4.6052 ? std::expf(-diff) : 0.f);
+      data[count] += (diff < 4.6052 ? expf(-diff) : 0.f);
       data[count] = data[count] > 1.0 ? 1.0 : data[count];
       ++count;
     }
