@@ -23,14 +23,16 @@ void Flip(const cv::Mat& image, Iterator begin, Iterator end,
 
 template<typename T>
 void UpdateHeatmap(T* data, const cv::Point2f& pt, int height, int width,
-                   float sigma) {
+                   float sigma, int stride=1) {
   int count = 0;
   float inv_sigma_sqr = 0.5/(sigma*sigma);
   for (int i = 0; i < height; i++) {
-    float dy2 = (i-pt.y)*(i-pt.y);
+    int strided_i = stride*i;
+    float dy2 = (strided_i-pt.y)*(strided_i-pt.y);
     for (int j = 0; j < width; j++) {
-      float diff = (dy2 + (j-pt.x)*(j-pt.x))*inv_sigma_sqr;
-      data[count] += (diff < 4.6052 ? std::expf(-diff) : 0.f);
+      int strided_j = stride*j;
+      float diff = (dy2 + (strided_j-pt.x)*(strided_j-pt.x))*inv_sigma_sqr;
+      data[count] += (diff < 4.6052 ? expf(-diff) : 0.f);
       data[count] = data[count] > 1.0 ? 1.0 : data[count];
       ++count;
     }

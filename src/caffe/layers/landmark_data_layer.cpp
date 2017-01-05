@@ -41,6 +41,7 @@ void LandmarkDataLayer<Dtype>::DataLayerSetUp(
   const int crop_size = this->layer_param_.transform_param().crop_size();
   const int num_landmarks = this->layer_param_.transform_param().num_landmarks();
   const int batch_size = this->layer_param_.data_param().batch_size();
+  const int label_stride = this->layer_param_.transform_param().label_stride();
   if (crop_size > 0) {
     // top[0] stores image
     top[0]->Reshape(batch_size, data_channel, crop_size, crop_size);
@@ -57,8 +58,8 @@ void LandmarkDataLayer<Dtype>::DataLayerSetUp(
   
   // top[1] stores label info
   if (this->output_labels_) {
-    int label_width = crop_size;
-    int label_height = crop_size;
+    int label_width = crop_size/label_stride;
+    int label_height = crop_size/label_stride;
     int label_channel = (num_landmarks+1)*2;
     top[1]->Reshape(batch_size, label_channel, label_height, label_width);
     for (int i = 0; i < this->PREFETCH_COUNT; ++i) {

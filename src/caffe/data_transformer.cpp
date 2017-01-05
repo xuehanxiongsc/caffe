@@ -661,7 +661,9 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
   const int datum_width = datum.width();
   const int bytes_per_channel = datum_width*datum_height;
   const int crop_size = param_.crop_size();
-  const int bytes_per_output_channel = crop_size*crop_size;
+  const int label_size = crop_size/param_.label_stride();
+  const int bytes_per_image_channel = crop_size*crop_size;
+  const int bytes_per_label_channel = label_size*label_size;
   const int num_landmarks = param_.num_landmarks();
   const int slice_point = num_landmarks+1;
   CHECK_EQ(datum_channels, 4);
@@ -690,16 +692,14 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
   std::vector<cv::Mat> crop_bgr_array(3);
   cv::split(crop_image, crop_bgr_array);
   CopyToDatum(transformed_data, crop_bgr_array[0], 127.0f, 1.0f/255.0f);
-  CopyToDatum(transformed_data+bytes_per_output_channel, crop_bgr_array[1],
+  CopyToDatum(transformed_data+bytes_per_image_channel, crop_bgr_array[1],
               127.0f, 1.0f/255.0f);
-  CopyToDatum(transformed_data+bytes_per_output_channel*2, crop_bgr_array[2],
+  CopyToDatum(transformed_data+bytes_per_image_channel*2, crop_bgr_array[2],
               127.0f, 1.0f/255.0f);
   float crop_image_center = 0.5f*(param_.crop_size()-1.0f);
-  UpdateHeatmap(transformed_data+bytes_per_output_channel*3,
+  UpdateHeatmap(transformed_data+bytes_per_image_channel*3,
                 cv::Point2f(crop_image_center,crop_image_center),
-                crop_size,
-                crop_size,
-                param_.centermap_sigma());
+                crop_size, crop_size, param_.centermap_sigma());
   // write heatmaps to label
   for (int n = 0; n < landmark_data.num_objects; n++) {
     for (int i = 0; i < num_landmarks; i++) {
@@ -708,29 +708,27 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
       // if this landmark is invisible
       if (landmark_i.at<float>(2) == 0.0) continue;
       // the first slice of labels contain heatmaps from all people
-      UpdateHeatmap(transformed_label+bytes_per_output_channel*i,
+      UpdateHeatmap(transformed_label+bytes_per_label_channel*i,
                     cv::Point2f(landmark_i.at<float>(0),
                                 landmark_i.at<float>(1)),
-                    crop_size,
-                    crop_size,
-                    param_.sigma());
+                    label_size, label_size, param_.sigma(),
+                    param_.label_stride());
       // the second slice of labels only contain heatmaps from the 1st person
       if (n==0) {
-        UpdateHeatmap(transformed_label+bytes_per_output_channel*(i+slice_point),
+        UpdateHeatmap(transformed_label+bytes_per_label_channel*(i+slice_point),
                       cv::Point2f(landmark_i.at<float>(0),
                                   landmark_i.at<float>(1)),
-                      crop_size,
-                      crop_size,
-                      param_.sigma());
+                      label_size, label_size, param_.sigma(),
+                      param_.label_stride());
       }
     }
   }
-  BackgroundHeatmap(transformed_label, crop_size, crop_size, num_landmarks,
-                    transformed_label+num_landmarks*bytes_per_output_channel);
-  BackgroundHeatmap(transformed_label+slice_point*bytes_per_output_channel,
-                    crop_size, crop_size, num_landmarks,
+  BackgroundHeatmap(transformed_label, label_size, label_size, num_landmarks,
+                    transformed_label+num_landmarks*bytes_per_label_channel);
+  BackgroundHeatmap(transformed_label+slice_point*bytes_per_label_channel,
+                    label_size, label_size, num_landmarks,
                     transformed_label+
-                        (slice_point+num_landmarks)*bytes_per_output_channel);
+                        (slice_point+num_landmarks)*bytes_per_label_channel);
 }
 
 template<typename Dtype>

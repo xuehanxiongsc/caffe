@@ -448,6 +448,8 @@ message TransformationParameter {
   optional float abs_scale = 17 [default = 1.0];
   // centermap sigma
   optional float centermap_sigma = 18 [default = 12.0];
+  // label stride
+  optional uint32 label_stride = 19 [default = 1];
 }
 
 // Message that stores parameters shared by loss layers
