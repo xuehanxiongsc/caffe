@@ -697,10 +697,12 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
   CopyToDatum(transformed_data+bytes_per_image_channel*2, crop_bgr_array[2],
               127.0f, 1.0f/255.0f);
   float crop_image_center = 0.5f*(param_.crop_size()-1.0f);
+  memset(transformed_data+bytes_per_image_channel*3,0,sizeof(Dtype)*bytes_per_image_channel);
   UpdateHeatmap(transformed_data+bytes_per_image_channel*3,
                 cv::Point2f(crop_image_center,crop_image_center),
                 crop_size, crop_size, param_.centermap_sigma());
   // write heatmaps to label
+  memset(transformed_label,0,sizeof(Dtype)*bytes_per_label_channel*(num_landmarks+1)*2);
   for (int n = 0; n < landmark_data.num_objects; n++) {
     for (int i = 0; i < num_landmarks; i++) {
       const cv::Mat& landmark_i = landmark_data.landmarks.row(
