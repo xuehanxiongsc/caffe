@@ -675,6 +675,9 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
   float perturb_scale = (phase_ == TRAIN) ? (param_.min_scale() +
       static_cast<float>(Rand(100))/100.f *
       (param_.max_scale()-param_.min_scale())) : 1.0f;
+  float perturb_deg = (phase_ == TRAIN) ? (-param_.max_rotation() +
+      static_cast<float>(Rand(100))/100.f * (2.0f*param_.max_rotation()))
+      : 0.0f;
   int perturb_x = (phase_ == TRAIN) ? (-param_.max_shift() +
       Rand(2*param_.max_shift())) : 0;
   int perturb_y = (phase_ == TRAIN) ? (-param_.max_shift() +
@@ -686,8 +689,8 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
   cv::Mat bgr;
   cv::merge(bgr_array, bgr);
   cv::Mat crop_image;
-  PerturbLandmarkData(bgr,perturb_scale,perturb_x,perturb_y,do_mirror,
-                      &crop_image,&landmark_data);
+  PerturbLandmarkData(bgr,perturb_scale,perturb_x,perturb_y,perturb_deg,
+                      do_mirror,&crop_image,&landmark_data);
   // write transformed image to data
   std::vector<cv::Mat> crop_bgr_array(3);
   cv::split(crop_image, crop_bgr_array);
@@ -739,6 +742,7 @@ void DataTransformer<Dtype>::PerturbLandmarkData(
     float perturbed_scale,
     int perturbed_x,
     int perturbed_y,
+    float perturb_deg,
     bool mirror,
     cv::Mat* output_image,
     LandmarkLabel* inout_label) {
@@ -755,6 +759,17 @@ void DataTransformer<Dtype>::PerturbLandmarkData(
   inout_label->landmarks.colRange(0,2) *= scale;
   inout_label->center.x *= scale;
   inout_label->center.y *= scale;
+  // apply random rotation
+  cv::Mat rotated_img;
+  cv::Mat M = imrotate(resized_image,perturb_deg,&rotated_img);
+  inout_label->landmarks.colRange(0,2) = inout_label->landmarks.colRange(0,2) *
+      M.colRange(0, 2).t();
+  inout_label->landmarks.col(0) += M.at<float>(0,2);
+  inout_label->landmarks.col(1) += M.at<float>(1,2);
+  inout_label->center.x = (inout_label->center.x*M.at<float>(0,0) +
+      inout_label->center.y*M.at<float>(0,1)) + M.at<float>(0,2);
+  inout_label->center.y = (inout_label->center.x*M.at<float>(1,0) +
+      inout_label->center.y*M.at<float>(1,1)) + M.at<float>(1,2);
   // apply random translation perturbation
   cv::Point offset;
   const int half_crop_size = param_.crop_size()/2;
@@ -762,7 +777,7 @@ void DataTransformer<Dtype>::PerturbLandmarkData(
   int crop_y_start = inout_label->center.y - half_crop_size + perturbed_y;
   cv::Rect roi(crop_x_start,crop_y_start,param_.crop_size(),param_.crop_size());
   cv::Mat crop_image;
-  imcrop(resized_image,roi,offset,&crop_image,true);
+  imcrop(rotated_img,roi,offset,&crop_image,true);
   inout_label->landmarks.col(0) -= offset.x;
   inout_label->landmarks.col(1) -= offset.y;
   // apply mirroring

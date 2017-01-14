@@ -1,5 +1,7 @@
 #include "caffe/util/opencv_util.hpp"
 
+#include <opencv2/imgproc/imgproc.hpp>
+
 namespace caffe {
 void imcrop(const cv::Mat& in_image, const cv::Rect& roi, cv::Point& offset,
             cv::Mat* out_image, bool fill)
@@ -32,5 +34,23 @@ void imcrop(const cv::Mat& in_image, const cv::Rect& roi, cv::Point& offset,
       *out_image);
 }
 
-    
+cv::Mat imrotate(const cv::Mat& in_image, float deg, cv::Mat* out_image) {
+  const int width = in_image.cols;
+  const int height = in_image.rows;
+  cv::Mat border = (cv::Mat_<float>(2,4)
+                    << 0.f, width-1, width-1, 0.f,
+                    0.f, 0.f, height-1, height-1);
+  cv::Mat R = R_from_deg(deg2rad(deg));
+  cv::Mat rotated_border = R*border;
+  cv::Mat min_border,max_border,dim;
+  cv::reduce(rotated_border,min_border,1,CV_REDUCE_MIN);
+  cv::reduce(rotated_border,max_border,1,CV_REDUCE_MAX);
+  dim = max_border - min_border + 1.f;
+  cv::Size dst_size(static_cast<int>(dim.at<float>(0)),
+                    static_cast<int>(dim.at<float>(1)));
+  cv::Mat M, wim, wpts;
+  cv::hconcat(R,-min_border,M);
+  cv::warpAffine(in_image, *out_image, M, dst_size);
+  return M;
+}
 }

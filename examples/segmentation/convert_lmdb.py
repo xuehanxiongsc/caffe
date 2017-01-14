@@ -118,7 +118,7 @@ def writeLMDB(image_files, label_files, bgd_files, lmdb_path):
     env.close()
 
 def usage():
-    print 'convert_lmdb.py --data_dir <data directory>'
+    print 'convert_lmdb.py --data_dir=<data directory>'
     
 def main(argv):
     root_dir = ''

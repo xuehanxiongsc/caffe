@@ -64,6 +64,7 @@ void BackgroundHeatmap(const T* fgd_ptr, int height, int width,
 
 void imcrop(const cv::Mat& in_image, const cv::Rect& roi, cv::Point& offset,
             cv::Mat* out_image, bool fill);
+cv::Mat imrotate(const cv::Mat& in_image, float deg, cv::Mat* out_image);
 
 inline std::vector<cv::Point> corners_from_rect(const cv::Rect& rect) {
   std::vector<cv::Point> corners(4);
@@ -72,6 +73,16 @@ inline std::vector<cv::Point> corners_from_rect(const cv::Rect& rect) {
   corners[2] = cv::Point(rect.x+rect.width-1,rect.y+rect.height-1);
   corners[3] = cv::Point(rect.x,rect.y+rect.height-1);
   return corners;
+}
+
+inline cv::Mat R_from_deg(float rad) {
+  const float cosx = cos(rad);
+  const float sinx = sin(rad);
+  return (cv::Mat_<float>(2,2) << cosx, -sinx, sinx, cosx);
+}
+
+inline float deg2rad(float deg) {
+  return M_PI/180.0f*deg;
 }
 
 template<typename T>

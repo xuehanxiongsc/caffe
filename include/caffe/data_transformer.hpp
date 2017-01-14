@@ -174,8 +174,8 @@ class DataTransformer {
   void LandmarkTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
   void SegTransform(const Datum& datum, Dtype* transformed_data, Dtype* transformed_label);
   void PerturbLandmarkData(const cv::Mat& input_image,float perturbed_scale,
-                           int perturbed_x,int perturbed_y,bool mirror,
-                           cv::Mat* output_image,
+                           int perturbed_x,int perturbed_y,float perturb_deg,
+                           bool mirror,cv::Mat* output_image,
                            LandmarkLabel* inout_label);
 #endif
     
