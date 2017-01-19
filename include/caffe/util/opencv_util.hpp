@@ -85,9 +85,45 @@ inline float deg2rad(float deg) {
   return M_PI/180.0f*deg;
 }
 
+
+inline float point_to_segment(const cv::Point2f& l0, const cv::Point2f& l1,
+                              const cv::Point2f& pt) {
+  cv::Point2f v = l1-l0;
+  cv::Point2f w = pt-l0;
+  float c1 = w.dot(v);
+  if (c1 <= 0.0f) {
+    return cv::norm(w);
+  }
+  float c2 = v.dot(v);
+  if (c2 <= c1 || c2 < 1.0E-5) {
+    return cv::norm(pt-l1);
+  }
+  cv::Point2f pb = (c1/c2)*v + l0;
+  return cv::norm(pb-pt);
+}
+
+
 template<typename T>
 cv::Rect_<T> vec2rect(const cv::Vec4f& vec) {
   return cv::Rect_<T>(vec[0],vec[1],vec[2]-vec[0]+1,vec[3]-vec[1]+1);
+}
+
+template<typename T>
+void UpdateAffinityMap(T* data, const cv::Point2f& l0, const cv::Point2f& l1,
+                       int height, int width, float sigma, int stride=1) {
+  int count = 0;
+  float inv_sigma_sqr = 0.5/(sigma*sigma);
+  for (int i = 0; i < height; i++) {
+    int strided_i = stride*i;
+    for (int j = 0; j < width; j++) {
+      int strided_j = stride*j;
+      float dist = point_to_segment(l0,l1,cv::Point2f(strided_j,strided_i));
+      dist = (dist*dist)*inv_sigma_sqr;
+      data[count] += (dist < 4.6052 ? expf(-dist) : 0.f);
+      data[count] = data[count] > 1.0 ? 1.0 : data[count];
+      ++count;
+    }
+  }
 }
 
 inline cv::Rect make_square(const cv::Rect& box, float margin) {

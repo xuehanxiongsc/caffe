@@ -665,6 +665,7 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
   const int bytes_per_image_channel = crop_size*crop_size;
   const int bytes_per_label_channel = label_size*label_size;
   const int num_landmarks = param_.num_landmarks();
+  const int num_affinity_pairs = param_.affinity_pair_index_size()/2;
   const int slice_point = num_landmarks+1;
   CHECK_EQ(datum_channels, 4);
   // read landmark data from last channel
@@ -679,9 +680,9 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
       static_cast<float>(Rand(100))/100.f * (2.0f*param_.max_rotation()))
       : 0.0f;
   int perturb_x = (phase_ == TRAIN) ? (-param_.max_shift() +
-      Rand(2*param_.max_shift())) : 0;
+      Rand(1+2*param_.max_shift())) : 0;
   int perturb_y = (phase_ == TRAIN) ? (-param_.max_shift() +
-      Rand(2*param_.max_shift())) : 0;
+      Rand(1+2*param_.max_shift())) : 0;
   std::vector<cv::Mat> bgr_array(3);
   bgr_array[0] = SingleChannelFromDatum(datum, 0);
   bgr_array[1] = SingleChannelFromDatum(datum, bytes_per_channel);
@@ -705,7 +706,7 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
                 cv::Point2f(crop_image_center,crop_image_center),
                 crop_size, crop_size, param_.centermap_sigma());
   // write heatmaps to label
-  memset(transformed_label,0,sizeof(Dtype)*bytes_per_label_channel*(num_landmarks+1)*2);
+  memset(transformed_label,0,sizeof(Dtype)*bytes_per_label_channel*((num_landmarks+1)*2+num_affinity_pairs));
   for (int n = 0; n < landmark_data.num_objects; n++) {
     for (int i = 0; i < num_landmarks; i++) {
       const cv::Mat& landmark_i = landmark_data.landmarks.row(
@@ -734,6 +735,24 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
                     label_size, label_size, num_landmarks,
                     transformed_label+
                         (slice_point+num_landmarks)*bytes_per_label_channel);
+  // write affinity maps, do it only for the first person
+  for (int i = 0; i < num_affinity_pairs; i++) {
+    const int index_i = param_.affinity_pair_index(2*i);
+    const int index_j = param_.affinity_pair_index(2*i+1);
+    const cv::Mat& landmark_i = landmark_data.landmarks.row(index_i);
+    const cv::Mat& landmark_j = landmark_data.landmarks.row(index_j);
+    if (landmark_i.at<float>(2) == 0.0 || landmark_j.at<float>(2) == 0.0) {
+      continue;
+    }
+    UpdateAffinityMap(transformed_label+bytes_per_label_channel*(i+2*slice_point),
+                      cv::Point2f(landmark_i.at<float>(0),
+                                  landmark_i.at<float>(1)),
+                      cv::Point2f(landmark_j.at<float>(0),
+                                  landmark_j.at<float>(1)),
+                      label_size, label_size, param_.affinity_sigma(),
+                      param_.label_stride());
+  }
+  
 }
 
 template<typename Dtype>
@@ -766,10 +785,12 @@ void DataTransformer<Dtype>::PerturbLandmarkData(
       M.colRange(0, 2).t();
   inout_label->landmarks.col(0) += M.at<float>(0,2);
   inout_label->landmarks.col(1) += M.at<float>(1,2);
-  inout_label->center.x = (inout_label->center.x*M.at<float>(0,0) +
-      inout_label->center.y*M.at<float>(0,1)) + M.at<float>(0,2);
-  inout_label->center.y = (inout_label->center.x*M.at<float>(1,0) +
-      inout_label->center.y*M.at<float>(1,1)) + M.at<float>(1,2);
+  float center_x = inout_label->center.x;
+  float center_y = inout_label->center.y;
+  inout_label->center.x = (center_x*M.at<float>(0,0) +
+      center_y*M.at<float>(0,1)) + M.at<float>(0,2);
+  inout_label->center.y = (center_x*M.at<float>(1,0) +
+      center_y*M.at<float>(1,1)) + M.at<float>(1,2);
   // apply random translation perturbation
   cv::Point offset;
   const int half_crop_size = param_.crop_size()/2;

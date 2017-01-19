@@ -452,6 +452,10 @@ message TransformationParameter {
   optional uint32 label_stride = 19 [default = 1];
   // max rotation perturbation
   optional float max_rotation = 20 [default = 0.0];
+  // affinity pairs
+  repeated uint32 affinity_pair_index = 21;
+  // affinity sigma
+  optional float affinity_sigma = 22 [default = 3.0];
 }
 
 // Message that stores parameters shared by loss layers
