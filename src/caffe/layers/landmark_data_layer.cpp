@@ -37,13 +37,15 @@ void LandmarkDataLayer<Dtype>::DataLayerSetUp(
   Datum& datum = *(reader_.full().peek());
   // the last channel stores label info
   const int datum_channel = datum.channels();
-  const int data_channel = datum_channel;
+  const int use_centermap = this->layer_param_.transform_param().use_centermap();
+  const int data_channel = 3+use_centermap;
   const int crop_size = this->layer_param_.transform_param().crop_size();
   const int num_landmarks = this->layer_param_.transform_param().num_landmarks();
   const int batch_size = this->layer_param_.data_param().batch_size();
   const int label_stride = this->layer_param_.transform_param().label_stride();
   const int num_affinity_pairs =
       this->layer_param_.transform_param().affinity_pair_index_size()/2;
+  
   if (crop_size > 0) {
     // top[0] stores image
     top[0]->Reshape(batch_size, data_channel, crop_size, crop_size);

@@ -456,6 +456,8 @@ message TransformationParameter {
   repeated uint32 affinity_pair_index = 21;
   // affinity sigma
   optional float affinity_sigma = 22 [default = 3.0];
+  // create centermap
+  optional bool use_centermap = 23 [default = false];
 }
 
 // Message that stores parameters shared by loss layers
