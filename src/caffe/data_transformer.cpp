@@ -710,11 +710,11 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
   }
   // write heatmaps to label
   memset(transformed_label,0,sizeof(Dtype)*bytes_per_label_channel*
-                             ((num_landmarks+1)*2+num_affinity_pairs));
+                             ((num_landmarks+1+num_affinity_pairs)*2));
   for (int n = 0; n < landmark_data.num_objects; n++) {
     for (int i = 0; i < num_landmarks; i++) {
-      const cv::Mat& landmark_i = landmark_data.landmarks.row(
-          i+n*num_landmarks);
+      const cv::Mat& landmark_i =
+          landmark_data.landmarks.row(i+n*num_landmarks);
       // if this landmark is invisible
       if (landmark_i.at<float>(2) == 0.0) continue;
       // the first slice of labels contain heatmaps from all people
@@ -739,24 +739,36 @@ void DataTransformer<Dtype>::LandmarkTransform(const Datum& datum,
                     label_size, label_size, num_landmarks,
                     transformed_label+
                         (slice_point+num_landmarks)*bytes_per_label_channel);
-  // write affinity maps, do it only for the first person
-  for (int i = 0; i < num_affinity_pairs; i++) {
-    const int index_i = param_.affinity_pair_index(2*i);
-    const int index_j = param_.affinity_pair_index(2*i+1);
-    const cv::Mat& landmark_i = landmark_data.landmarks.row(index_i);
-    const cv::Mat& landmark_j = landmark_data.landmarks.row(index_j);
-    if (landmark_i.at<float>(2) == 0.0 || landmark_j.at<float>(2) == 0.0) {
-      continue;
+  // write affinity maps
+  for (int n = 0; n < landmark_data.num_objects; n++) {
+    for (int i = 0; i < num_affinity_pairs; i++) {
+      const int index_i = param_.affinity_pair_index(2*i);
+      const int index_j = param_.affinity_pair_index(2*i+1);
+      const cv::Mat& landmark_i =
+          landmark_data.landmarks.row(index_i+n*num_landmarks);
+      const cv::Mat& landmark_j =
+          landmark_data.landmarks.row(index_j+n*num_landmarks);
+      if (landmark_i.at<float>(2) == 0.0 || landmark_j.at<float>(2) == 0.0) {
+        continue;
+      }
+      // the first slice contains affinity maps for all people
+      UpdateAffinityMap(
+          transformed_label+bytes_per_label_channel*(i+2*slice_point),
+          cv::Point2f(landmark_i.at<float>(0),landmark_i.at<float>(1)),
+          cv::Point2f(landmark_j.at<float>(0),landmark_j.at<float>(1)),
+          label_size, label_size, param_.affinity_sigma(),
+          param_.label_stride());
+      // the second slice contains affinity maps for the 1st person
+      if (n==0) {
+        UpdateAffinityMap(
+            transformed_label+bytes_per_label_channel*(i+2*slice_point+num_affinity_pairs),
+            cv::Point2f(landmark_i.at<float>(0), landmark_i.at<float>(1)),
+            cv::Point2f(landmark_j.at<float>(0), landmark_j.at<float>(1)),
+            label_size, label_size, param_.affinity_sigma(),
+            param_.label_stride());
+      }
     }
-    UpdateAffinityMap(transformed_label+bytes_per_label_channel*(i+2*slice_point),
-                      cv::Point2f(landmark_i.at<float>(0),
-                                  landmark_i.at<float>(1)),
-                      cv::Point2f(landmark_j.at<float>(0),
-                                  landmark_j.at<float>(1)),
-                      label_size, label_size, param_.affinity_sigma(),
-                      param_.label_stride());
   }
-  
 }
 
 template<typename Dtype>
@@ -808,7 +820,7 @@ void DataTransformer<Dtype>::PerturbLandmarkData(
   // apply mirroring
   if (mirror) {
     Flip(crop_image, param_.flip_index().begin(), param_.flip_index().end(),
-         output_image, &(inout_label->landmarks));
+         inout_label->num_objects, output_image, &(inout_label->landmarks));
   } else {
     *output_image = crop_image;
   }

@@ -64,7 +64,7 @@ void LandmarkDataLayer<Dtype>::DataLayerSetUp(
   if (this->output_labels_) {
     int label_width = crop_size/label_stride;
     int label_height = crop_size/label_stride;
-    int label_channel = (num_landmarks+1)*2+num_affinity_pairs;
+    int label_channel = (num_affinity_pairs+num_landmarks+1)*2;
     top[1]->Reshape(batch_size, label_channel, label_height, label_width);
     for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
       this->prefetch_[i].label_.Reshape(batch_size, label_channel, label_height,

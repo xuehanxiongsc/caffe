@@ -9,15 +9,18 @@
 namespace caffe {
 
 template<class Iterator>
-void Flip(const cv::Mat& image, Iterator begin, Iterator end,
+void Flip(const cv::Mat& image, Iterator begin, Iterator end, int num_objects,
           cv::Mat* flip_image, cv::Mat* landmarks) {
+  const int num_landmarks = landmarks->rows / num_objects;
   cv::flip(image, *flip_image, 1);
   cv::Mat landmark_ref = *landmarks;
   landmark_ref.col(0) = image.cols - landmark_ref.col(0) - 1.0f;
   cv::Mat landmark_copy = landmark_ref.clone();
   int count = 0;
-  for (Iterator it = begin; it != end; it++,count++) {
-    landmark_copy.row(*it).copyTo(landmarks->row(count));
+  for (int i = 0; i < num_objects; i++) {
+    for (Iterator it = begin; it != end; it++,count++) {
+      landmark_copy.row(num_landmarks*i+(*it)).copyTo(landmarks->row(count));
+    }
   }
 }
 
