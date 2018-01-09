@@ -1,0 +1,20 @@
+train_net: "examples/body_pose/enet_pose_multistage_train.prototxt"
+test_net: "examples/body_pose/enet_pose_multistage_val.prototxt"
+# 2948 validation samples, batch size is 16
+test_iter: 185
+test_interval: 200
+display: 20
+average_loss: 20
+# Optimization parameters
+lr_policy: "step"
+base_lr: 5.0e-2
+momentum: 0.9
+gamma: 0.3
+# 25889 training samples, batch size is 64=16x4 with 4 GPUs
+stepsize: 10112 # reduce lr every 25 epochs
+max_iter: 40451
+weight_decay: 1.0e-6
+snapshot: 5000
+snapshot_prefix: "/tmp/enet_bodypose_s4/pose"
+test_initialization: false
+solver_mode: CPU
